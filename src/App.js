@@ -1,5 +1,4 @@
-// src/App.js (Full Fixed - Correct Imports, Case Sensitivity, No Errors)
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Home from './pages/Home';
 import Club from './pages/Club';
@@ -11,6 +10,12 @@ import AdminDashboard from './pages/AdminDashboard';
 import './index.css';
 
 function App() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
   return (
     <Router>
       <div className="min-h-screen bg-gray-primary">
@@ -45,10 +50,34 @@ function App() {
                 </Link>
               </div>
               <div className="sm:hidden flex items-center">
-                <button className="text-white p-2">☰</button>
+                <button onClick={toggleMenu} className="text-white p-2 text-2xl">
+                  ☰
+                </button>
               </div>
             </div>
           </div>
+          {/* Mobile Menu */}
+          {isMenuOpen && (
+            <div className="sm:hidden bg-gray-charcoal text-white absolute top-14 left-0 w-full shadow-lg z-50">
+              <div className="p-4 space-y-2">
+                <Link to="/" className="block px-4 py-2 hover:bg-gray-700 rounded" onClick={() => setIsMenuOpen(false)}>
+                  Home
+                </Link>
+                <Link to="/club" className="block px-4 py-2 hover:bg-gray-700 rounded" onClick={() => setIsMenuOpen(false)}>
+                  Club
+                </Link>
+                <Link to="/olympiad" className="block px-4 py-2 hover:bg-gray-700 rounded" onClick={() => setIsMenuOpen(false)}>
+                  Olympiad
+                </Link>
+                <Link to="/registration-request" className="block px-4 py-2 hover:bg-gray-700 rounded" onClick={() => setIsMenuOpen(false)}>
+                  Registration Request
+                </Link>
+                <Link to="/admin-verify" className="block px-4 py-2 hover:bg-gray-700 rounded" onClick={() => setIsMenuOpen(false)}>
+                  Admin Verify
+                </Link>
+              </div>
+            </div>
+          )}
         </nav>
         <Routes>
           <Route path="/" element={<Home />} />
