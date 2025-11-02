@@ -12,7 +12,7 @@ const AdminVerify = () => {
 
   const fetchRegistrations = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/register');
+      const response = await fetch('https://mcsc-backend.onrender.com/api/register');
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
@@ -30,7 +30,7 @@ const AdminVerify = () => {
     if (!verifyCode.trim()) return alert('Enter unique code');
     setVerifyLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/register/${verifyCode.trim()}/verify`, {
+      const response = await fetch(`https://mcsc-backend.onrender.com/api/register/${verifyCode.trim()}/verify`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'Paid' })

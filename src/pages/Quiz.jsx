@@ -49,7 +49,7 @@ const Quiz = () => {
   // Memoized fetchProfile (moved up to avoid useBeforeDefine)
   const fetchProfile = useCallback(async (email) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/olympiad/profile?email=${email}`);
+      const response = await fetch(`https://mcsc-backend.onrender.com/api/olympiad/profile?email=${email}`);
       const result = await response.json();
       if (response.ok && result.data && result.data.isRegistered) {
         setProfile(result.data);
@@ -76,7 +76,7 @@ const Quiz = () => {
       setLoading(true);
       try {
         const sessionEmail = localStorage.getItem('olympiadSession');
-        await fetch('http://localhost:5000/api/olympiad/submit', {
+        await fetch('https://mcsc-backend.onrender.com/api/olympiad/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: sessionEmail, answers })

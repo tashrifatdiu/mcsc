@@ -35,7 +35,7 @@ const Olympiad = () => {
 
   const fetchProfile = async (email) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/olympiad/profile?email=${email}`);
+      const response = await fetch(`https://mcsc-backend.onrender.com/api/olympiad/profile?email=${email}`);
       const result = await response.json();
       if (response.ok && result.data) {
         setProfile(result.data);
@@ -60,7 +60,7 @@ const Olympiad = () => {
     if (!loginData.email) return alert('Enter email');
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/olympiad/login', {
+      const response = await fetch('https://mcsc-backend.onrender.com/api/olympiad/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(loginData)
@@ -91,7 +91,7 @@ const Olympiad = () => {
     setLoading(true);
     try {
       const tempEmail = localStorage.getItem('olympiadTempEmail');
-      const response = await fetch('http://localhost:5000/api/olympiad/verify-otp', {
+      const response = await fetch('https://mcsc-backend.onrender.com/api/olympiad/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: tempEmail, otp: otpData.otp })
@@ -128,7 +128,7 @@ const Olympiad = () => {
     setLoading(true);
     try {
       console.log('Submitting reg data:', regData);
-      const response = await fetch('http://localhost:5000/api/olympiad/register', {
+      const response = await fetch('https://mcsc-backend.onrender.com/api/olympiad/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(regData)
@@ -155,7 +155,7 @@ const Olympiad = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/olympiad/profile', {
+      const response = await fetch('https://mcsc-backend.onrender.com/api/olympiad/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: regData.email, ...regData })

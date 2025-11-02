@@ -10,7 +10,7 @@ const AdminDashboard = () => {
 
   const fetchRequests = useCallback(async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/request?campus=${campus}`);
+      const response = await fetch(`https://mcsc-backend.onrender.com/api/request?campus=${campus}`);
       const result = await response.json();
       setRequests(result.data || []);
     } catch (error) {
@@ -42,7 +42,7 @@ const AdminDashboard = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/request/admin-login', {
+      const response = await fetch('https://mcsc-backend.onrender.com/api/request/admin-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(loginData)
@@ -66,7 +66,7 @@ const AdminDashboard = () => {
     if (!confirm('Collect photos/money, then approve?')) return;
     setApprovalLoading(prev => ({ ...prev, [id]: true }));
     try {
-      const response = await fetch(`http://localhost:5000/api/request/${id}/approve`, {
+      const response = await fetch(`https://mcsc-backend.onrender.com/api/request/${id}/approve`, {
         method: 'PUT'
       });
       if (response.ok) {
