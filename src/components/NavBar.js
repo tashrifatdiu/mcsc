@@ -20,9 +20,9 @@ const NavBar = () => {
         const res = await fetch((process.env.REACT_APP_API_BASE || 'http://localhost:5000').replace(/\/$/, '') + '/api/courses');
         const data = await res.json().catch(() => null);
         if (!mounted) return;
-        if (data && Array.isArray(data.courses)) setCourses(data.courses.slice(0, 8)); // Reduced for mobile
+        if (data && Array.isArray(data.courses)) setCourses(data.courses.slice(0, 8));
       } catch (err) {
-        // ignore
+        console.log('Failed to fetch courses:', err);
       }
     })();
     return () => { mounted = false; };
@@ -74,16 +74,25 @@ const NavBar = () => {
       }
     }
 
-    if (isMenuOpen || isCoursesOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('keydown', handleEscapeKey);
-    }
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscapeKey);
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscapeKey);
     };
-  }, [isMenuOpen, isCoursesOpen]);
+  }, []);
+
+  const toggleCoursesDropdown = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsCoursesOpen(!isCoursesOpen);
+  };
+
+  const closeAllMenus = () => {
+    setIsMenuOpen(false);
+    setIsCoursesOpen(false);
+  };
 
   async function handleLogout() {
     try {
@@ -97,7 +106,7 @@ const NavBar = () => {
         // ignore
       }
       setUser(null);
-      setIsMenuOpen(false);
+      closeAllMenus();
       navigate('/login');
     } catch (err) {
       console.error('Logout failed', err);
@@ -113,27 +122,30 @@ const NavBar = () => {
           <span className="navbar-brand-text">MCSC</span>
         </div>
 
-        {/* Desktop Navigation - Hidden on mobile */}
+        {/* Desktop Navigation */}
         <div className="navbar-links-desktop">
-          <Link to="/" className="nav-link">Home</Link>
+          <Link to="/" className="nav-link" onClick={closeAllMenus}>Home</Link>
           
-          <div 
-            className="nav-dropdown-container"
-            onMouseEnter={() => setIsCoursesOpen(true)}
-            onMouseLeave={() => setIsCoursesOpen(false)}
-          >
-            <button className="nav-link nav-dropdown-trigger">
+          <div className="nav-dropdown-container">
+            <button 
+              className="nav-link nav-dropdown-trigger"
+              onClick={toggleCoursesDropdown}
+              onMouseEnter={() => setIsCoursesOpen(true)}
+            >
               Courses
               <span className={`dropdown-arrow ${isCoursesOpen ? 'open' : ''}`}>▼</span>
             </button>
             {courses.length > 0 && (
-              <div className={`nav-dropdown ${isCoursesOpen ? 'open' : ''}`}>
+              <div 
+                className={`nav-dropdown ${isCoursesOpen ? 'open' : ''}`}
+                onMouseLeave={() => setIsCoursesOpen(false)}
+              >
                 {courses.map(course => (
                   <Link 
                     key={course._id} 
                     to={`/courses#${course._id}`} 
                     className="dropdown-link"
-                    onClick={() => setIsCoursesOpen(false)}
+                    onClick={closeAllMenus}
                   >
                     {course.title}
                   </Link>
@@ -142,12 +154,12 @@ const NavBar = () => {
             )}
           </div>
 
-          <Link to="/journal" className="nav-link">Journal</Link>
-          <Link to="/journal/gallery" className="nav-link">Gallery</Link>
-          <Link to="/events/past" className="nav-link">Past Events</Link>
-          <Link to="/events/future" className="nav-link">Upcoming</Link>
-          <Link to="/registration-request" className="nav-link">Register</Link>
-          <Link to="/admin-verify" className="nav-link">Admin</Link>
+          <Link to="/journal" className="nav-link" onClick={closeAllMenus}>Journal</Link>
+          <Link to="/journal/gallery" className="nav-link" onClick={closeAllMenus}>Gallery</Link>
+          <Link to="/events/past" className="nav-link" onClick={closeAllMenus}>Past Events</Link>
+          <Link to="/events/future" className="nav-link" onClick={closeAllMenus}>Upcoming</Link>
+          <Link to="/registration-request" className="nav-link" onClick={closeAllMenus}>Register</Link>
+          <Link to="/admin-verify" className="nav-link" onClick={closeAllMenus}>Admin</Link>
         </div>
 
         {/* User Section */}
@@ -157,6 +169,7 @@ const NavBar = () => {
               <Link 
                 to="/dashboard" 
                 className="user-button"
+                onClick={closeAllMenus}
               >
                 <span className="user-avatar">
                   {user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
@@ -179,8 +192,8 @@ const NavBar = () => {
             </div>
           ) : (
             <div className="auth-buttons">
-              <Link to="/login" className="auth-button login-button">Login</Link>
-              <Link to="/signup" className="auth-button signup-button">Sign Up</Link>
+              <Link to="/login" className="auth-button login-button" onClick={closeAllMenus}>Login</Link>
+              <Link to="/signup" className="auth-button signup-button" onClick={closeAllMenus}>Sign Up</Link>
             </div>
           )}
 
@@ -199,7 +212,7 @@ const NavBar = () => {
 
       {/* Mobile Menu */}
       <div className={`mobile-menu ${isMenuOpen ? 'open' : ''}`}>
-        <Link to="/" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
+        <Link to="/" className="mobile-nav-link" onClick={closeAllMenus}>
           <span className="mobile-nav-icon">🏠</span>
           Home
         </Link>
@@ -207,7 +220,11 @@ const NavBar = () => {
         <div className="mobile-dropdown">
           <button 
             className="mobile-nav-link mobile-dropdown-trigger"
-            onClick={() => setIsCoursesOpen(!isCoursesOpen)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsCoursesOpen(!isCoursesOpen);
+            }}
           >
             <span className="mobile-nav-icon">📚</span>
             Courses
@@ -219,10 +236,7 @@ const NavBar = () => {
                 key={course._id} 
                 to={`/courses#${course._id}`} 
                 className="mobile-dropdown-link"
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  setIsCoursesOpen(false);
-                }}
+                onClick={closeAllMenus}
               >
                 {course.title}
               </Link>
@@ -230,38 +244,38 @@ const NavBar = () => {
           </div>
         </div>
 
-        <Link to="/journal" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
+        <Link to="/journal" className="mobile-nav-link" onClick={closeAllMenus}>
           <span className="mobile-nav-icon">📖</span>
           Journal
         </Link>
-        <Link to="/journal/gallery" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
+        <Link to="/journal/gallery" className="mobile-nav-link" onClick={closeAllMenus}>
           <span className="mobile-nav-icon">🖼️</span>
           Gallery
         </Link>
-        <Link to="/events/past" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
+        <Link to="/events/past" className="mobile-nav-link" onClick={closeAllMenus}>
           <span className="mobile-nav-icon">📅</span>
           Past Events
         </Link>
-        <Link to="/events/future" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
+        <Link to="/events/future" className="mobile-nav-link" onClick={closeAllMenus}>
           <span className="mobile-nav-icon">⏩</span>
           Upcoming Events
         </Link>
-        <Link to="/registration-request" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
+        <Link to="/registration-request" className="mobile-nav-link" onClick={closeAllMenus}>
           <span className="mobile-nav-icon">📝</span>
           Registration
         </Link>
-        <Link to="/admin-verify" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
+        <Link to="/admin-verify" className="mobile-nav-link" onClick={closeAllMenus}>
           <span className="mobile-nav-icon">🔒</span>
           Admin Verify
         </Link>
         
         {!user && (
           <>
-            <Link to="/login" className="mobile-nav-link auth-link" onClick={() => setIsMenuOpen(false)}>
+            <Link to="/login" className="mobile-nav-link auth-link" onClick={closeAllMenus}>
               <span className="mobile-nav-icon">🔑</span>
               Login
             </Link>
-            <Link to="/signup" className="mobile-nav-link auth-link" onClick={() => setIsMenuOpen(false)}>
+            <Link to="/signup" className="mobile-nav-link auth-link" onClick={closeAllMenus}>
               <span className="mobile-nav-icon">👤</span>
               Sign Up
             </Link>
