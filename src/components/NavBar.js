@@ -113,8 +113,8 @@ const NavBar = () => {
           <span className="navbar-brand-text">MCSC</span>
         </div>
 
-        {/* Desktop Navigation */}
-        <div className="navbar-links">
+        {/* Desktop Navigation - Centered */}
+        <div className="navbar-links-center">
           <Link to="/" className="nav-link">Home</Link>
           
           <div 
@@ -199,13 +199,17 @@ const NavBar = () => {
 
       {/* Mobile Menu */}
       <div className={`mobile-menu ${isMenuOpen ? 'open' : ''}`}>
-        <Link to="/" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>Home</Link>
+        <Link to="/" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
+          <span className="mobile-nav-icon">🏠</span>
+          Home
+        </Link>
         
         <div className="mobile-dropdown">
           <button 
             className="mobile-nav-link mobile-dropdown-trigger"
             onClick={() => setIsCoursesOpen(!isCoursesOpen)}
           >
+            <span className="mobile-nav-icon">📚</span>
             Courses
             <span className={`dropdown-arrow ${isCoursesOpen ? 'open' : ''}`}>▼</span>
           </button>
@@ -226,17 +230,41 @@ const NavBar = () => {
           </div>
         </div>
 
-        <Link to="/journal" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>Journal</Link>
-        <Link to="/journal/gallery" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>Gallery</Link>
-        <Link to="/events/past" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>Past Events</Link>
-        <Link to="/events/future" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>Upcoming Events</Link>
-        <Link to="/registration-request" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>Registration</Link>
-        <Link to="/admin-verify" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>Admin Verify</Link>
+        <Link to="/journal" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
+          <span className="mobile-nav-icon">📖</span>
+          Journal
+        </Link>
+        <Link to="/journal/gallery" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
+          <span className="mobile-nav-icon">🖼️</span>
+          Gallery
+        </Link>
+        <Link to="/events/past" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
+          <span className="mobile-nav-icon">📅</span>
+          Past Events
+        </Link>
+        <Link to="/events/future" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
+          <span className="mobile-nav-icon">⏩</span>
+          Upcoming Events
+        </Link>
+        <Link to="/registration-request" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
+          <span className="mobile-nav-icon">📝</span>
+          Registration
+        </Link>
+        <Link to="/admin-verify" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
+          <span className="mobile-nav-icon">🔒</span>
+          Admin Verify
+        </Link>
         
         {!user && (
           <>
-            <Link to="/login" className="mobile-nav-link auth-link" onClick={() => setIsMenuOpen(false)}>Login</Link>
-            <Link to="/signup" className="mobile-nav-link auth-link" onClick={() => setIsMenuOpen(false)}>Sign Up</Link>
+            <Link to="/login" className="mobile-nav-link auth-link" onClick={() => setIsMenuOpen(false)}>
+              <span className="mobile-nav-icon">🔑</span>
+              Login
+            </Link>
+            <Link to="/signup" className="mobile-nav-link auth-link" onClick={() => setIsMenuOpen(false)}>
+              <span className="mobile-nav-icon">👤</span>
+              Sign Up
+            </Link>
           </>
         )}
       </div>
