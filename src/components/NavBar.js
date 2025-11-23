@@ -5,6 +5,7 @@ import './NavBar.css';
 import { supabase } from '../lib/supabase';
 import logo from './mcsclogo.png';
 
+// Updated NavBar component with improved design and integration
 const NavBar = () => {
   const [user, setUser] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
