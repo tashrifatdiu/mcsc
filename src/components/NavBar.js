@@ -11,6 +11,7 @@ const NavBar = () => {
   const navRef = useRef(null);
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
     // fetch course list for dropdown
@@ -102,6 +103,10 @@ const NavBar = () => {
       console.error('Logout failed', err);
     }
   }
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
 
   return (
     <nav className="site-nav" role="navigation" ref={navRef}>
@@ -235,6 +240,71 @@ const NavBar = () => {
               background-color: #555;
             }
 
+            .navbar {
+              background-color: #333;
+              padding: 10px 20px;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            }
+
+            .nav-container {
+              display: flex;
+              align-items: center;
+              width: 100%;
+            }
+
+            .nav-brand {
+              flex-grow: 1;
+            }
+
+            .brand-text {
+              color: white;
+              font-size: 1.5rem;
+              font-weight: bold;
+              text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+            }
+
+            .dropdown-toggle {
+              background: none;
+              border: none;
+              color: white;
+              font-size: 1.2rem;
+              cursor: pointer;
+              padding: 10px;
+              transition: transform 0.2s;
+            }
+
+            .dropdown-toggle:hover {
+              transform: scale(1.1);
+            }
+
+            .dropdown-menu {
+              display: flex;
+              flex-direction: column;
+              position: absolute;
+              background: #444;
+              color: white;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+              border-radius: 4px;
+              padding: 10px;
+              z-index: 1000;
+              top: 60px;
+              right: 20px;
+            }
+
+            .dropdown-item {
+              color: white;
+              padding: 10px;
+              text-decoration: none;
+              border-radius: 4px;
+              transition: background-color 0.3s;
+            }
+
+            .dropdown-item:hover {
+              background-color: #555;
+            }
+
           @media (max-width: 768px) {
             .site-nav {
               flex-direction: column;
@@ -254,6 +324,12 @@ const NavBar = () => {
 
             .nav-toggle {
               font-size: 1.5rem;
+            }
+
+            .dropdown-menu {
+              width: 100%;
+              top: 50px;
+              right: 0;
             }
           }
 
