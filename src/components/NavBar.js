@@ -20,7 +20,7 @@ const NavBar = () => {
         const res = await fetch((process.env.REACT_APP_API_BASE || 'http://localhost:5000').replace(/\/$/, '') + '/api/courses');
         const data = await res.json().catch(() => null);
         if (!mounted) return;
-        if (data && Array.isArray(data.courses)) setCourses(data.courses.slice(0, 10));
+        if (data && Array.isArray(data.courses)) setCourses(data.courses.slice(0, 8)); // Reduced for mobile
       } catch (err) {
         // ignore
       }
@@ -113,8 +113,8 @@ const NavBar = () => {
           <span className="navbar-brand-text">MCSC</span>
         </div>
 
-        {/* Desktop Navigation - Centered */}
-        <div className="navbar-links-center">
+        {/* Desktop Navigation - Hidden on mobile */}
+        <div className="navbar-links-desktop">
           <Link to="/" className="nav-link">Home</Link>
           
           <div 
@@ -145,9 +145,9 @@ const NavBar = () => {
           <Link to="/journal" className="nav-link">Journal</Link>
           <Link to="/journal/gallery" className="nav-link">Gallery</Link>
           <Link to="/events/past" className="nav-link">Past Events</Link>
-          <Link to="/events/future" className="nav-link">Upcoming Events</Link>
-          <Link to="/registration-request" className="nav-link">Registration</Link>
-          <Link to="/admin-verify" className="nav-link">Admin Verify</Link>
+          <Link to="/events/future" className="nav-link">Upcoming</Link>
+          <Link to="/registration-request" className="nav-link">Register</Link>
+          <Link to="/admin-verify" className="nav-link">Admin</Link>
         </div>
 
         {/* User Section */}
@@ -162,7 +162,7 @@ const NavBar = () => {
                   {user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
                 </span>
                 <span className="user-name">
-                  {user.user_metadata?.full_name || user.email || 'Dashboard'}
+                  {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
                 </span>
               </Link>
               <button 
@@ -170,7 +170,7 @@ const NavBar = () => {
                 onClick={handleLogout}
                 aria-label="Logout"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
                   <polyline points="16,17 21,12 16,7"/>
                   <line x1="21" y1="12" x2="9" y2="12"/>
