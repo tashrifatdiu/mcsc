@@ -58,34 +58,24 @@ const NavBar = () => {
     };
   }, []);
 
-  // Close dropdowns when clicking outside or pressing Escape
+  // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(e) {
-      if (!navRef.current?.contains(e.target)) {
-        setIsMenuOpen(false);
-        setIsCoursesOpen(false);
-      }
-    }
-
-    function handleEscapeKey(e) {
-      if (e.key === 'Escape') {
+      if (navRef.current && !navRef.current.contains(e.target)) {
         setIsMenuOpen(false);
         setIsCoursesOpen(false);
       }
     }
 
     document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleEscapeKey);
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscapeKey);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const toggleCoursesDropdown = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const toggleMobileMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const toggleCoursesDropdown = () => {
     setIsCoursesOpen(!isCoursesOpen);
   };
 
@@ -97,14 +87,8 @@ const NavBar = () => {
   async function handleLogout() {
     try {
       await supabase.auth.signOut();
-      try {
-        localStorage.removeItem('mcsc_user');
-        localStorage.removeItem('mcsc_token');
-        sessionStorage.removeItem('mcsc_user');
-        sessionStorage.removeItem('mcsc_supabase_session');
-      } catch (err) {
-        // ignore
-      }
+      localStorage.removeItem('mcsc_user');
+      localStorage.removeItem('mcsc_token');
       setUser(null);
       closeAllMenus();
       navigate('/login');
@@ -115,36 +99,36 @@ const NavBar = () => {
 
   return (
     <nav className="navbar" ref={navRef}>
-      <div className="navbar-container">
+      <div className="nav-container">
         {/* Logo and Brand */}
-        <div className="navbar-brand">
-          <img src={logo} alt="Club Logo" className="navbar-logo" />
-          <span className="navbar-brand-text">MCSC</span>
+        <div className="nav-brand">
+          <img src={logo} alt="Club Logo" className="nav-logo" />
+          <span className="brand-text">MCSC</span>
         </div>
 
         {/* Desktop Navigation */}
-        <div className="navbar-links-desktop">
-          <Link to="/" className="nav-link" onClick={closeAllMenus}>Home</Link>
+        <div className="nav-links">
+          <Link to="/" className="nav-link">Home</Link>
           
-          <div className="nav-dropdown-container">
+          <div className="dropdown">
             <button 
-              className="nav-link nav-dropdown-trigger"
-              onClick={toggleCoursesDropdown}
+              className="nav-link dropdown-btn"
               onMouseEnter={() => setIsCoursesOpen(true)}
+              onMouseLeave={() => setIsCoursesOpen(false)}
             >
-              Courses
-              <span className={`dropdown-arrow ${isCoursesOpen ? 'open' : ''}`}>▼</span>
+              Courses ▼
             </button>
-            {courses.length > 0 && (
+            {isCoursesOpen && courses.length > 0 && (
               <div 
-                className={`nav-dropdown ${isCoursesOpen ? 'open' : ''}`}
+                className="dropdown-menu"
+                onMouseEnter={() => setIsCoursesOpen(true)}
                 onMouseLeave={() => setIsCoursesOpen(false)}
               >
                 {courses.map(course => (
                   <Link 
                     key={course._id} 
                     to={`/courses#${course._id}`} 
-                    className="dropdown-link"
+                    className="dropdown-item"
                     onClick={closeAllMenus}
                   >
                     {course.title}
@@ -154,54 +138,41 @@ const NavBar = () => {
             )}
           </div>
 
-          <Link to="/journal" className="nav-link" onClick={closeAllMenus}>Journal</Link>
-          <Link to="/journal/gallery" className="nav-link" onClick={closeAllMenus}>Gallery</Link>
-          <Link to="/events/past" className="nav-link" onClick={closeAllMenus}>Past Events</Link>
-          <Link to="/events/future" className="nav-link" onClick={closeAllMenus}>Upcoming</Link>
-          <Link to="/registration-request" className="nav-link" onClick={closeAllMenus}>Register</Link>
-          <Link to="/admin-verify" className="nav-link" onClick={closeAllMenus}>Admin</Link>
+          <Link to="/journal" className="nav-link">Journal</Link>
+          <Link to="/journal/gallery" className="nav-link">Gallery</Link>
+          <Link to="/events/past" className="nav-link">Past Events</Link>
+          <Link to="/events/future" className="nav-link">Upcoming</Link>
+          <Link to="/registration-request" className="nav-link">Register</Link>
+          <Link to="/admin-verify" className="nav-link">Admin</Link>
         </div>
 
         {/* User Section */}
-        <div className="navbar-user-section">
+        <div className="nav-user">
           {user ? (
-            <div className="user-menu">
-              <Link 
-                to="/dashboard" 
-                className="user-button"
-                onClick={closeAllMenus}
-              >
-                <span className="user-avatar">
+            <div className="user-info">
+              <Link to="/dashboard" className="user-btn">
+                <div className="user-avatar">
                   {user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
-                </span>
+                </div>
                 <span className="user-name">
                   {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
                 </span>
               </Link>
-              <button 
-                className="logout-button" 
-                onClick={handleLogout}
-                aria-label="Logout"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                  <polyline points="16,17 21,12 16,7"/>
-                  <line x1="21" y1="12" x2="9" y2="12"/>
-                </svg>
+              <button className="logout-btn" onClick={handleLogout}>
+                Logout
               </button>
             </div>
           ) : (
-            <div className="auth-buttons">
-              <Link to="/login" className="auth-button login-button" onClick={closeAllMenus}>Login</Link>
-              <Link to="/signup" className="auth-button signup-button" onClick={closeAllMenus}>Sign Up</Link>
+            <div className="auth-btns">
+              <Link to="/login" className="login-btn">Login</Link>
+              <Link to="/signup" className="signup-btn">Sign Up</Link>
             </div>
           )}
 
           {/* Mobile Menu Button */}
           <button 
-            className={`mobile-menu-button ${isMenuOpen ? 'open' : ''}`}
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="Toggle menu"
+            className={`mobile-menu-btn ${isMenuOpen ? 'active' : ''}`}
+            onClick={toggleMobileMenu}
           >
             <span></span>
             <span></span>
@@ -211,83 +182,43 @@ const NavBar = () => {
       </div>
 
       {/* Mobile Menu */}
-      <div className={`mobile-menu ${isMenuOpen ? 'open' : ''}`}>
-        <div className="mobile-menu-content">
-          <Link to="/" className="mobile-nav-link" onClick={closeAllMenus}>
-            <span className="mobile-nav-icon">🏠</span>
-            Home
-          </Link>
-          
-          {/* FIXED: Mobile Courses Dropdown */}
-          <div className="mobile-dropdown-section">
-            <button 
-              className="mobile-nav-link mobile-dropdown-trigger"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setIsCoursesOpen(!isCoursesOpen);
-              }}
-            >
-              <span className="mobile-nav-icon">📚</span>
-              Courses
-              <span className={`dropdown-arrow mobile ${isCoursesOpen ? 'open' : ''}`}>▼</span>
-            </button>
-            
-            <div className={`mobile-dropdown-content ${isCoursesOpen ? 'open' : ''}`}>
-              <div className="mobile-dropdown-scroll">
-                {courses.map(course => (
-                  <Link 
-                    key={course._id} 
-                    to={`/courses#${course._id}`} 
-                    className="mobile-dropdown-link"
-                    onClick={closeAllMenus}
-                  >
-                    <span className="course-bullet">•</span>
-                    {course.title}
-                  </Link>
-                ))}
-              </div>
-            </div>
+      <div className={`mobile-menu ${isMenuOpen ? 'active' : ''}`}>
+        <Link to="/" className="mobile-link" onClick={closeAllMenus}>Home</Link>
+        
+        <div className="mobile-dropdown">
+          <button 
+            className="mobile-link dropdown-toggle"
+            onClick={toggleCoursesDropdown}
+          >
+            Courses {isCoursesOpen ? '▲' : '▼'}
+          </button>
+          <div className={`dropdown-content ${isCoursesOpen ? 'show' : ''}`}>
+            {courses.map(course => (
+              <Link 
+                key={course._id} 
+                to={`/courses#${course._id}`} 
+                className="dropdown-item-mobile"
+                onClick={closeAllMenus}
+              >
+                {course.title}
+              </Link>
+            ))}
           </div>
-
-          <Link to="/journal" className="mobile-nav-link" onClick={closeAllMenus}>
-            <span className="mobile-nav-icon">📖</span>
-            Journal
-          </Link>
-          <Link to="/journal/gallery" className="mobile-nav-link" onClick={closeAllMenus}>
-            <span className="mobile-nav-icon">🖼️</span>
-            Gallery
-          </Link>
-          <Link to="/events/past" className="mobile-nav-link" onClick={closeAllMenus}>
-            <span className="mobile-nav-icon">📅</span>
-            Past Events
-          </Link>
-          <Link to="/events/future" className="mobile-nav-link" onClick={closeAllMenus}>
-            <span className="mobile-nav-icon">⏩</span>
-            Upcoming Events
-          </Link>
-          <Link to="/registration-request" className="mobile-nav-link" onClick={closeAllMenus}>
-            <span className="mobile-nav-icon">📝</span>
-            Registration
-          </Link>
-          <Link to="/admin-verify" className="mobile-nav-link" onClick={closeAllMenus}>
-            <span className="mobile-nav-icon">🔒</span>
-            Admin Verify
-          </Link>
-          
-          {!user && (
-            <>
-              <Link to="/login" className="mobile-nav-link auth-link" onClick={closeAllMenus}>
-                <span className="mobile-nav-icon">🔑</span>
-                Login
-              </Link>
-              <Link to="/signup" className="mobile-nav-link auth-link" onClick={closeAllMenus}>
-                <span className="mobile-nav-icon">👤</span>
-                Sign Up
-              </Link>
-            </>
-          )}
         </div>
+
+        <Link to="/journal" className="mobile-link" onClick={closeAllMenus}>Journal</Link>
+        <Link to="/journal/gallery" className="mobile-link" onClick={closeAllMenus}>Gallery</Link>
+        <Link to="/events/past" className="mobile-link" onClick={closeAllMenus}>Past Events</Link>
+        <Link to="/events/future" className="mobile-link" onClick={closeAllMenus}>Upcoming Events</Link>
+        <Link to="/registration-request" className="mobile-link" onClick={closeAllMenus}>Registration</Link>
+        <Link to="/admin-verify" className="mobile-link" onClick={closeAllMenus}>Admin Verify</Link>
+        
+        {!user && (
+          <>
+            <Link to="/login" className="mobile-link" onClick={closeAllMenus}>Login</Link>
+            <Link to="/signup" className="mobile-link" onClick={closeAllMenus}>Sign Up</Link>
+          </>
+        )}
       </div>
     </nav>
   );
