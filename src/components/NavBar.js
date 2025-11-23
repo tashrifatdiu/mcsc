@@ -1,19 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import '../index.css';
-import './NavBar.css'; // Import the CSS file for styles
+import './NavBar.css';
 import { supabase } from '../lib/supabase';
 import logo from './mcsclogo.png';
 
 const NavBar = () => {
   const [user, setUser] = useState(null);
-  const [open, setOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCoursesOpen, setIsCoursesOpen] = useState(false);
   const navRef = useRef(null);
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
 
   useEffect(() => {
-    // fetch course list for dropdown
     let mounted = true;
     (async () => {
       try {
@@ -50,7 +50,6 @@ const NavBar = () => {
 
     return () => {
       mounted = false;
-      // unsubscribe
       if (sub && typeof sub.subscription?.unsubscribe === 'function') {
         sub.subscription.unsubscribe();
       } else if (sub?.unsubscribe) {
@@ -59,34 +58,36 @@ const NavBar = () => {
     };
   }, []);
 
-  // Close dropdown when clicking outside or pressing Escape
+  // Close dropdowns when clicking outside or pressing Escape
   useEffect(() => {
-    function onDocClick(e) {
-      if (!navRef.current) return;
-      if (open && !navRef.current.contains(e.target)) {
-        setOpen(false);
+    function handleClickOutside(e) {
+      if (!navRef.current?.contains(e.target)) {
+        setIsMenuOpen(false);
+        setIsCoursesOpen(false);
       }
     }
 
-    function onKey(e) {
-      if (e.key === 'Escape' && open) setOpen(false);
+    function handleEscapeKey(e) {
+      if (e.key === 'Escape') {
+        setIsMenuOpen(false);
+        setIsCoursesOpen(false);
+      }
     }
 
-    document.addEventListener('mousedown', onDocClick);
-    document.addEventListener('touchstart', onDocClick);
-    document.addEventListener('keydown', onKey);
+    if (isMenuOpen || isCoursesOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscapeKey);
+    }
 
     return () => {
-      document.removeEventListener('mousedown', onDocClick);
-      document.removeEventListener('touchstart', onDocClick);
-      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscapeKey);
     };
-  }, [open]);
+  }, [isMenuOpen, isCoursesOpen]);
 
   async function handleLogout() {
     try {
       await supabase.auth.signOut();
-      // Remove any local storage you used for session copies
       try {
         localStorage.removeItem('mcsc_user');
         localStorage.removeItem('mcsc_token');
@@ -96,7 +97,7 @@ const NavBar = () => {
         // ignore
       }
       setUser(null);
-      setOpen(false);
+      setIsMenuOpen(false);
       navigate('/login');
     } catch (err) {
       console.error('Logout failed', err);
@@ -104,178 +105,141 @@ const NavBar = () => {
   }
 
   return (
-    <nav className="site-nav" role="navigation" ref={navRef}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <div className="brand">
-         <img src={logo} alt="Club Logo" style={{ height: '40px', verticalAlign: 'middle' }} />
-
+    <nav className="navbar" ref={navRef}>
+      <div className="navbar-container">
+        {/* Logo and Brand */}
+        <div className="navbar-brand">
+          <img src={logo} alt="Club Logo" className="navbar-logo" />
+          <span className="navbar-brand-text">MCSC</span>
         </div>
-        <button
-          className="nav-toggle btn btn-ghost"
-          aria-label={open ? 'Close navigation' : 'Open navigation'}
-          aria-expanded={open}
-          onClick={() => setOpen(o => !o)}
-        >
-          ☰
-        </button>
-      </div>
 
-      <div className={`nav-links ${open ? 'open' : 'collapsed'}`}>
-        <Link to="/" onClick={() => setOpen(false)}>Home</Link>
-        <div className="nav-item-with-dropdown">
-          <Link to="/courses" onClick={() => setOpen(false)}>Courses</Link>
-          {courses.length > 0 && (
-            <div className="nav-dropdown">
-              {courses.map(c => <Link key={c._id} to={`/courses#${c._id}`} onClick={() => setOpen(false)}>{c.title}</Link>)}
+        {/* Desktop Navigation */}
+        <div className="navbar-links">
+          <Link to="/" className="nav-link">Home</Link>
+          
+          <div 
+            className="nav-dropdown-container"
+            onMouseEnter={() => setIsCoursesOpen(true)}
+            onMouseLeave={() => setIsCoursesOpen(false)}
+          >
+            <button className="nav-link nav-dropdown-trigger">
+              Courses
+              <span className={`dropdown-arrow ${isCoursesOpen ? 'open' : ''}`}>▼</span>
+            </button>
+            {courses.length > 0 && (
+              <div className={`nav-dropdown ${isCoursesOpen ? 'open' : ''}`}>
+                {courses.map(course => (
+                  <Link 
+                    key={course._id} 
+                    to={`/courses#${course._id}`} 
+                    className="dropdown-link"
+                    onClick={() => setIsCoursesOpen(false)}
+                  >
+                    {course.title}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <Link to="/journal" className="nav-link">Journal</Link>
+          <Link to="/journal/gallery" className="nav-link">Gallery</Link>
+          <Link to="/events/past" className="nav-link">Past Events</Link>
+          <Link to="/events/future" className="nav-link">Upcoming Events</Link>
+          <Link to="/registration-request" className="nav-link">Registration</Link>
+          <Link to="/admin-verify" className="nav-link">Admin Verify</Link>
+        </div>
+
+        {/* User Section */}
+        <div className="navbar-user-section">
+          {user ? (
+            <div className="user-menu">
+              <Link 
+                to="/dashboard" 
+                className="user-button"
+              >
+                <span className="user-avatar">
+                  {user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
+                </span>
+                <span className="user-name">
+                  {user.user_metadata?.full_name || user.email || 'Dashboard'}
+                </span>
+              </Link>
+              <button 
+                className="logout-button" 
+                onClick={handleLogout}
+                aria-label="Logout"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                  <polyline points="16,17 21,12 16,7"/>
+                  <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+              </button>
+            </div>
+          ) : (
+            <div className="auth-buttons">
+              <Link to="/login" className="auth-button login-button">Login</Link>
+              <Link to="/signup" className="auth-button signup-button">Sign Up</Link>
             </div>
           )}
+
+          {/* Mobile Menu Button */}
+          <button 
+            className={`mobile-menu-button ${isMenuOpen ? 'open' : ''}`}
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
         </div>
-        <Link to="/journal" onClick={() => setOpen(false)}>Journal</Link>
-        <Link to="/journal/gallery" onClick={() => setOpen(false)}>Gallery</Link>
-        <Link to="/events/past" onClick={() => setOpen(false)}>Past Events</Link>
-        <Link to="/events/future" onClick={() => setOpen(false)}>Upcoming Events</Link>
-        <Link to="/registration-request" onClick={() => setOpen(false)}>Registration Request</Link>
-        <Link to="/admin-verify" onClick={() => setOpen(false)}>Admin Verify</Link>
-        {!user && <Link to="/login" onClick={() => setOpen(false)}>Login</Link>}
-        {!user && <Link to="/signup" onClick={() => setOpen(false)}>Sign Up</Link>}
       </div>
 
-      <div style={{ marginLeft: 16, display: 'flex', gap: 10, alignItems: 'center' }}>
-        {user ? (
+      {/* Mobile Menu */}
+      <div className={`mobile-menu ${isMenuOpen ? 'open' : ''}`}>
+        <Link to="/" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>Home</Link>
+        
+        <div className="mobile-dropdown">
+          <button 
+            className="mobile-nav-link mobile-dropdown-trigger"
+            onClick={() => setIsCoursesOpen(!isCoursesOpen)}
+          >
+            Courses
+            <span className={`dropdown-arrow ${isCoursesOpen ? 'open' : ''}`}>▼</span>
+          </button>
+          <div className={`mobile-dropdown-content ${isCoursesOpen ? 'open' : ''}`}>
+            {courses.map(course => (
+              <Link 
+                key={course._id} 
+                to={`/courses#${course._id}`} 
+                className="mobile-dropdown-link"
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  setIsCoursesOpen(false);
+                }}
+              >
+                {course.title}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <Link to="/journal" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>Journal</Link>
+        <Link to="/journal/gallery" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>Gallery</Link>
+        <Link to="/events/past" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>Past Events</Link>
+        <Link to="/events/future" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>Upcoming Events</Link>
+        <Link to="/registration-request" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>Registration</Link>
+        <Link to="/admin-verify" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>Admin Verify</Link>
+        
+        {!user && (
           <>
-            <Link
-              to="/dashboard"
-              style={{
-                color: '#fff',
-                backgroundColor: '#28a745', // Updated color to a green shade
-                padding: '8px 16px',
-                borderRadius: '20px',
-                textDecoration: 'none',
-                fontWeight: 'bold',
-                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-                transition: 'transform 0.2s',
-              }}
-              onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
-              onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-            >
-              {user.user_metadata?.full_name || user.email || 'Dashboard'}
-            </Link>
-            <button className="btn btn-ghost" onClick={handleLogout}>
-              Logout
-            </button>
+            <Link to="/login" className="mobile-nav-link auth-link" onClick={() => setIsMenuOpen(false)}>Login</Link>
+            <Link to="/signup" className="mobile-nav-link auth-link" onClick={() => setIsMenuOpen(false)}>Sign Up</Link>
           </>
-        ) : null}
+        )}
       </div>
-
-      <style>
-        {`
-            .site-nav {
-              background: #333;
-              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-              padding: 10px 20px;
-            }
-
-            .site-nav .brand {
-              font-size: 1.5rem;
-              font-weight: bold;
-              color: white;
-              text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-            }
-
-            .nav-links a {
-              color: white;
-              font-weight: 500;
-              padding: 8px 12px;
-              border-radius: 4px;
-              transition: background-color 0.3s, transform 0.2s;
-            }
-
-            .nav-links a:hover {
-              background-color: rgba(255, 255, 255, 0.2);
-              transform: scale(1.05);
-            }
-
-            .nav-toggle {
-              color: white;
-              font-size: 1.2rem;
-              border: none;
-              background: none;
-              cursor: pointer;
-              transition: transform 0.2s;
-            }
-
-            .nav-toggle:hover {
-              transform: scale(1.1);
-            }
-
-            .nav-item-with-dropdown:hover .nav-dropdown {
-              display: block;
-            }
-
-            .nav-dropdown {
-              display: none;
-              position: absolute;
-              background: #444;
-              color: white;
-              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-              border-radius: 4px;
-              padding: 10px;
-              z-index: 1000;
-            }
-
-            .nav-dropdown a {
-              color: white;
-              padding: 5px 10px;
-              display: block;
-              border-radius: 4px;
-              transition: background-color 0.3s;
-            }
-
-            .nav-dropdown a:hover {
-              background-color: #555;
-            }
-
-          @media (max-width: 768px) {
-            .site-nav {
-              flex-direction: column;
-              padding: 10px;
-            }
-
-            .nav-links {
-              display: flex;
-              flex-direction: column;
-              gap: 10px;
-            }
-
-            .nav-links a {
-              font-size: 1rem;
-              padding: 10px;
-            }
-
-            .nav-toggle {
-              font-size: 1.5rem;
-            }
-          }
-
-          @media (min-width: 769px) {
-            .site-nav {
-              flex-direction: row;
-              justify-content: space-between;
-            }
-
-            .nav-links {
-              display: flex;
-              flex-direction: row;
-              gap: 20px;
-            }
-
-            .nav-links a {
-              font-size: 1.2rem;
-              padding: 8px 12px;
-            }
-          }
-        `}
-      </style>
     </nav>
   );
 };
