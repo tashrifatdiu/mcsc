@@ -212,75 +212,82 @@ const NavBar = () => {
 
       {/* Mobile Menu */}
       <div className={`mobile-menu ${isMenuOpen ? 'open' : ''}`}>
-        <Link to="/" className="mobile-nav-link" onClick={closeAllMenus}>
-          <span className="mobile-nav-icon">🏠</span>
-          Home
-        </Link>
-        
-        <div className="mobile-dropdown">
-          <button 
-            className="mobile-nav-link mobile-dropdown-trigger"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setIsCoursesOpen(!isCoursesOpen);
-            }}
-          >
-            <span className="mobile-nav-icon">📚</span>
-            Courses
-            <span className={`dropdown-arrow ${isCoursesOpen ? 'open' : ''}`}>▼</span>
-          </button>
-          <div className={`mobile-dropdown-content ${isCoursesOpen ? 'open' : ''}`}>
-            {courses.map(course => (
-              <Link 
-                key={course._id} 
-                to={`/courses#${course._id}`} 
-                className="mobile-dropdown-link"
-                onClick={closeAllMenus}
-              >
-                {course.title}
-              </Link>
-            ))}
+        <div className="mobile-menu-content">
+          <Link to="/" className="mobile-nav-link" onClick={closeAllMenus}>
+            <span className="mobile-nav-icon">🏠</span>
+            Home
+          </Link>
+          
+          {/* FIXED: Mobile Courses Dropdown */}
+          <div className="mobile-dropdown-section">
+            <button 
+              className="mobile-nav-link mobile-dropdown-trigger"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsCoursesOpen(!isCoursesOpen);
+              }}
+            >
+              <span className="mobile-nav-icon">📚</span>
+              Courses
+              <span className={`dropdown-arrow mobile ${isCoursesOpen ? 'open' : ''}`}>▼</span>
+            </button>
+            
+            <div className={`mobile-dropdown-content ${isCoursesOpen ? 'open' : ''}`}>
+              <div className="mobile-dropdown-scroll">
+                {courses.map(course => (
+                  <Link 
+                    key={course._id} 
+                    to={`/courses#${course._id}`} 
+                    className="mobile-dropdown-link"
+                    onClick={closeAllMenus}
+                  >
+                    <span className="course-bullet">•</span>
+                    {course.title}
+                  </Link>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
 
-        <Link to="/journal" className="mobile-nav-link" onClick={closeAllMenus}>
-          <span className="mobile-nav-icon">📖</span>
-          Journal
-        </Link>
-        <Link to="/journal/gallery" className="mobile-nav-link" onClick={closeAllMenus}>
-          <span className="mobile-nav-icon">🖼️</span>
-          Gallery
-        </Link>
-        <Link to="/events/past" className="mobile-nav-link" onClick={closeAllMenus}>
-          <span className="mobile-nav-icon">📅</span>
-          Past Events
-        </Link>
-        <Link to="/events/future" className="mobile-nav-link" onClick={closeAllMenus}>
-          <span className="mobile-nav-icon">⏩</span>
-          Upcoming Events
-        </Link>
-        <Link to="/registration-request" className="mobile-nav-link" onClick={closeAllMenus}>
-          <span className="mobile-nav-icon">📝</span>
-          Registration
-        </Link>
-        <Link to="/admin-verify" className="mobile-nav-link" onClick={closeAllMenus}>
-          <span className="mobile-nav-icon">🔒</span>
-          Admin Verify
-        </Link>
-        
-        {!user && (
-          <>
-            <Link to="/login" className="mobile-nav-link auth-link" onClick={closeAllMenus}>
-              <span className="mobile-nav-icon">🔑</span>
-              Login
-            </Link>
-            <Link to="/signup" className="mobile-nav-link auth-link" onClick={closeAllMenus}>
-              <span className="mobile-nav-icon">👤</span>
-              Sign Up
-            </Link>
-          </>
-        )}
+          <Link to="/journal" className="mobile-nav-link" onClick={closeAllMenus}>
+            <span className="mobile-nav-icon">📖</span>
+            Journal
+          </Link>
+          <Link to="/journal/gallery" className="mobile-nav-link" onClick={closeAllMenus}>
+            <span className="mobile-nav-icon">🖼️</span>
+            Gallery
+          </Link>
+          <Link to="/events/past" className="mobile-nav-link" onClick={closeAllMenus}>
+            <span className="mobile-nav-icon">📅</span>
+            Past Events
+          </Link>
+          <Link to="/events/future" className="mobile-nav-link" onClick={closeAllMenus}>
+            <span className="mobile-nav-icon">⏩</span>
+            Upcoming Events
+          </Link>
+          <Link to="/registration-request" className="mobile-nav-link" onClick={closeAllMenus}>
+            <span className="mobile-nav-icon">📝</span>
+            Registration
+          </Link>
+          <Link to="/admin-verify" className="mobile-nav-link" onClick={closeAllMenus}>
+            <span className="mobile-nav-icon">🔒</span>
+            Admin Verify
+          </Link>
+          
+          {!user && (
+            <>
+              <Link to="/login" className="mobile-nav-link auth-link" onClick={closeAllMenus}>
+                <span className="mobile-nav-icon">🔑</span>
+                Login
+              </Link>
+              <Link to="/signup" className="mobile-nav-link auth-link" onClick={closeAllMenus}>
+                <span className="mobile-nav-icon">👤</span>
+                Sign Up
+              </Link>
+            </>
+          )}
+        </div>
       </div>
     </nav>
   );
