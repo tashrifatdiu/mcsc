@@ -1,0 +1,13 @@
+/* NavBar Styles */
+.navbar {
+  background-color: var(--bg);
+  color: var(--text-primary);
+}
+
+.navbar a {
+  color: var(--text-primary);
+}
+
+.navbar a:hover {
+  text-decoration: underline;
+}
