@@ -21,7 +21,7 @@ const NavBar = () => {
         const res = await fetch((process.env.REACT_APP_API_BASE || 'http://localhost:5000').replace(/\/$/, '') + '/api/courses');
         const data = await res.json().catch(() => null);
         if (!mounted) return;
-        if (data && Array.isArray(data.courses)) setCourses(data.courses.slice(0, 8));
+        if (data && Array.isArray(data.courses)) setCourses(data.courses.slice(0, 6)); // Reduced for space
       } catch (err) {
         console.log('Failed to fetch courses:', err);
       }
@@ -113,7 +113,7 @@ const NavBar = () => {
           <span className="brand-text">MCSC</span>
         </div>
 
-        {/* Desktop Navigation - Evenly Spaced */}
+        {/* Desktop Navigation - Compact */}
         <div className="nav-links">
           <Link to="/" className="nav-link" onClick={closeAllMenus}>Home</Link>
           
@@ -147,8 +147,7 @@ const NavBar = () => {
 
           <Link to="/journal" className="nav-link" onClick={closeAllMenus}>Journal</Link>
           <Link to="/journal/gallery" className="nav-link" onClick={closeAllMenus}>Gallery</Link>
-          <Link to="/events/past" className="nav-link" onClick={closeAllMenus}>Past Events</Link>
-          <Link to="/events/future" className="nav-link" onClick={closeAllMenus}>Upcoming</Link>
+          <Link to="/events/past" className="nav-link" onClick={closeAllMenus}>Events</Link>
           <Link to="/registration-request" className="nav-link" onClick={closeAllMenus}>Register</Link>
           <Link to="/admin-verify" className="nav-link" onClick={closeAllMenus}>Admin</Link>
         </div>
