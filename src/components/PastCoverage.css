@@ -1,0 +1,11 @@
+/* Mobile responsive styles for PastCoverage */
+.coverage-list {
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.home-section {
+  padding: 1rem;
+}
+
+/* Additional styles can be added here */

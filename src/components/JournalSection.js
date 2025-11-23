@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import './JournalSection.css'; // Import the external CSS file
 
 export default function JournalSection() {
   return (

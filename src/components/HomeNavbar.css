@@ -11,3 +11,18 @@
 .home-navbar a:hover {
   text-decoration: underline;
 }
+
+/* Mobile responsive styles for HomeNavbar */
+.home-nav {
+  padding: 1rem;
+}
+
+@media (max-width: 768px) {
+  .home-nav {
+    font-size: 0.9rem;
+  }
+
+  .nav-button {
+    font-size: 0.8rem;
+  }
+}

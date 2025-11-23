@@ -1,4 +1,5 @@
 import React from 'react';
+import './PastCoverage.css'; // Import the external CSS file
 
 const COVERAGE = [
   { outlet: 'Daily Student', title: 'MCSC wins regional science fair', date: '2024-05-18', url: '#' },
@@ -13,7 +14,7 @@ export default function PastCoverage() {
         <h2 id="past-heading">Past coverage</h2>
       </div>
 
-      <div className="coverage-list" style={{ marginTop: 12 }}>
+      <div className="coverage-list">
         {COVERAGE.map((c, i) => (
           <div key={i} className="coverage-item">
             <div>
