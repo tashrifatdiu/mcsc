@@ -9,6 +9,7 @@ const NavBar = () => {
   const [user, setUser] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCoursesOpen, setIsCoursesOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const navRef = useRef(null);
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
@@ -64,6 +65,7 @@ const NavBar = () => {
       if (navRef.current && !navRef.current.contains(e.target)) {
         setIsMenuOpen(false);
         setIsCoursesOpen(false);
+        setIsProfileOpen(false);
       }
     }
 
@@ -79,9 +81,14 @@ const NavBar = () => {
     setIsCoursesOpen(!isCoursesOpen);
   };
 
+  const toggleProfileDropdown = () => {
+    setIsProfileOpen(!isProfileOpen);
+  };
+
   const closeAllMenus = () => {
     setIsMenuOpen(false);
     setIsCoursesOpen(false);
+    setIsProfileOpen(false);
   };
 
   async function handleLogout() {
@@ -106,9 +113,9 @@ const NavBar = () => {
           <span className="brand-text">MCSC</span>
         </div>
 
-        {/* Desktop Navigation */}
+        {/* Desktop Navigation - Evenly Spaced */}
         <div className="nav-links">
-          <Link to="/" className="nav-link">Home</Link>
+          <Link to="/" className="nav-link" onClick={closeAllMenus}>Home</Link>
           
           <div className="dropdown">
             <button 
@@ -138,29 +145,56 @@ const NavBar = () => {
             )}
           </div>
 
-          <Link to="/journal" className="nav-link">Journal</Link>
-          <Link to="/journal/gallery" className="nav-link">Gallery</Link>
-          <Link to="/events/past" className="nav-link">Past Events</Link>
-          <Link to="/events/future" className="nav-link">Upcoming</Link>
-          <Link to="/registration-request" className="nav-link">Register</Link>
-          <Link to="/admin-verify" className="nav-link">Admin</Link>
+          <Link to="/journal" className="nav-link" onClick={closeAllMenus}>Journal</Link>
+          <Link to="/journal/gallery" className="nav-link" onClick={closeAllMenus}>Gallery</Link>
+          <Link to="/events/past" className="nav-link" onClick={closeAllMenus}>Past Events</Link>
+          <Link to="/events/future" className="nav-link" onClick={closeAllMenus}>Upcoming</Link>
+          <Link to="/registration-request" className="nav-link" onClick={closeAllMenus}>Register</Link>
+          <Link to="/admin-verify" className="nav-link" onClick={closeAllMenus}>Admin</Link>
         </div>
 
-        {/* User Section */}
+        {/* User Section with Profile Dropdown */}
         <div className="nav-user">
           {user ? (
-            <div className="user-info">
-              <Link to="/dashboard" className="user-btn">
-                <div className="user-avatar">
-                  {user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
-                </div>
-                <span className="user-name">
-                  {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
-                </span>
-              </Link>
-              <button className="logout-btn" onClick={handleLogout}>
-                Logout
-              </button>
+            <div className="user-section">
+              <div className="profile-dropdown">
+                <button 
+                  className="profile-btn"
+                  onMouseEnter={() => setIsProfileOpen(true)}
+                  onMouseLeave={() => setIsProfileOpen(false)}
+                  onClick={toggleProfileDropdown}
+                >
+                  <div className="user-avatar">
+                    {user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
+                  </div>
+                  <span className="user-name">
+                    {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
+                  </span>
+                  <span className="dropdown-arrow">▼</span>
+                </button>
+                
+                {isProfileOpen && (
+                  <div 
+                    className="profile-menu"
+                    onMouseEnter={() => setIsProfileOpen(true)}
+                    onMouseLeave={() => setIsProfileOpen(false)}
+                  >
+                    <Link to="/dashboard" className="profile-item" onClick={closeAllMenus}>
+                      <span className="profile-icon">👤</span>
+                      My Profile
+                    </Link>
+                    <Link to="/settings" className="profile-item" onClick={closeAllMenus}>
+                      <span className="profile-icon">⚙️</span>
+                      Settings
+                    </Link>
+                    <div className="profile-divider"></div>
+                    <button className="profile-item logout-item" onClick={handleLogout}>
+                      <span className="profile-icon">🚪</span>
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
             <div className="auth-btns">
@@ -183,13 +217,17 @@ const NavBar = () => {
 
       {/* Mobile Menu */}
       <div className={`mobile-menu ${isMenuOpen ? 'active' : ''}`}>
-        <Link to="/" className="mobile-link" onClick={closeAllMenus}>Home</Link>
+        <Link to="/" className="mobile-link" onClick={closeAllMenus}>
+          <span className="mobile-icon">🏠</span>
+          Home
+        </Link>
         
         <div className="mobile-dropdown">
           <button 
             className="mobile-link dropdown-toggle"
             onClick={toggleCoursesDropdown}
           >
+            <span className="mobile-icon">📚</span>
             Courses {isCoursesOpen ? '▲' : '▼'}
           </button>
           <div className={`dropdown-content ${isCoursesOpen ? 'show' : ''}`}>
@@ -200,23 +238,66 @@ const NavBar = () => {
                 className="dropdown-item-mobile"
                 onClick={closeAllMenus}
               >
+                <span className="course-bullet">•</span>
                 {course.title}
               </Link>
             ))}
           </div>
         </div>
 
-        <Link to="/journal" className="mobile-link" onClick={closeAllMenus}>Journal</Link>
-        <Link to="/journal/gallery" className="mobile-link" onClick={closeAllMenus}>Gallery</Link>
-        <Link to="/events/past" className="mobile-link" onClick={closeAllMenus}>Past Events</Link>
-        <Link to="/events/future" className="mobile-link" onClick={closeAllMenus}>Upcoming Events</Link>
-        <Link to="/registration-request" className="mobile-link" onClick={closeAllMenus}>Registration</Link>
-        <Link to="/admin-verify" className="mobile-link" onClick={closeAllMenus}>Admin Verify</Link>
+        <Link to="/journal" className="mobile-link" onClick={closeAllMenus}>
+          <span className="mobile-icon">📖</span>
+          Journal
+        </Link>
+        <Link to="/journal/gallery" className="mobile-link" onClick={closeAllMenus}>
+          <span className="mobile-icon">🖼️</span>
+          Gallery
+        </Link>
+        <Link to="/events/past" className="mobile-link" onClick={closeAllMenus}>
+          <span className="mobile-icon">📅</span>
+          Past Events
+        </Link>
+        <Link to="/events/future" className="mobile-link" onClick={closeAllMenus}>
+          <span className="mobile-icon">⏩</span>
+          Upcoming Events
+        </Link>
+        <Link to="/registration-request" className="mobile-link" onClick={closeAllMenus}>
+          <span className="mobile-icon">📝</span>
+          Registration
+        </Link>
+        <Link to="/admin-verify" className="mobile-link" onClick={closeAllMenus}>
+          <span className="mobile-icon">🔒</span>
+          Admin Verify
+        </Link>
         
-        {!user && (
+        {/* Mobile Profile Section */}
+        {user ? (
+          <div className="mobile-profile-section">
+            <div className="profile-divider-mobile"></div>
+            <Link to="/dashboard" className="mobile-link profile-link" onClick={closeAllMenus}>
+              <span className="mobile-icon">👤</span>
+              My Profile
+            </Link>
+            <Link to="/settings" className="mobile-link profile-link" onClick={closeAllMenus}>
+              <span className="mobile-icon">⚙️</span>
+              Settings
+            </Link>
+            <button className="mobile-link logout-link" onClick={handleLogout}>
+              <span className="mobile-icon">🚪</span>
+              Logout
+            </button>
+          </div>
+        ) : (
           <>
-            <Link to="/login" className="mobile-link" onClick={closeAllMenus}>Login</Link>
-            <Link to="/signup" className="mobile-link" onClick={closeAllMenus}>Sign Up</Link>
+            <div className="profile-divider-mobile"></div>
+            <Link to="/login" className="mobile-link auth-link" onClick={closeAllMenus}>
+              <span className="mobile-icon">🔑</span>
+              Login
+            </Link>
+            <Link to="/signup" className="mobile-link auth-link" onClick={closeAllMenus}>
+              <span className="mobile-icon">👤</span>
+              Sign Up
+            </Link>
           </>
         )}
       </div>
