@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './Home.css';
-import NavBar from '../components/NavBar';
+import HomeNavbar from '../components/HomeNavbar';
 import About from '../components/About';
 import Team from '../components/Team';
 import Highlights from '../components/Highlights';
@@ -109,7 +109,7 @@ export default function Home() {
 
       <div className="home-main">
         <aside className="home-aside">
-          <NavBar sections={SECTIONS} active={active} onSelect={scrollTo} />
+          <HomeNavbar sections={SECTIONS} active={active} onSelect={scrollTo} />
         </aside>
 
         <main className="home-content">
