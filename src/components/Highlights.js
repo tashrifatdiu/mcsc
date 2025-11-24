@@ -1,5 +1,4 @@
 import React from 'react';
-import './Highlights.css'; // Import the external CSS file
 
 const H = [
   { title: 'Annual Science Fair', desc: 'Showcasing student projects and prototypes', color: '#fde68a' },

@@ -135,30 +135,37 @@ a:hover { text-decoration: underline; }
 /* Responsive */
 @media (max-width: 900px){
   .home-main { flex-direction: column; padding:0 12px; }
-  .home-aside { width:100%; height:auto; position:relative; top: auto; display:flex; justify-content:center; margin-bottom:20px; }
+  .home-aside { width:100%; height:auto; position:relative; top:auto; display:flex; justify-content:center; margin-bottom:20px; }
 }
 @media (max-width: 768px) {
-  .home-root {
-    padding: 1rem;
-  }
-
-  .home-header h1 {
-    font-size: 1.5rem;
-  }
-
   .home-main {
     flex-direction: column;
+    padding: 0 12px;
   }
 
   .home-aside {
     display: none;
   }
-}
-@media (max-width: 720px){
-  .form-grid { grid-template-columns:1fr; }
-  .team-grid, .highlights-grid, .events-grid { grid-template-columns:1fr; }
-  .home-aside { position: relative; top: 0; padding: 10px; }
-  .home-header { padding-left: 12px; padding-right: 12px; }
+
+  .home-section {
+    margin-bottom: 16px;
+    padding: 12px;
+  }
+
+  .events-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .team-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .highlights-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
 }
 
 /* Improve clickable area and spacing on small devices */

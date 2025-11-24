@@ -126,20 +126,22 @@ const NavBar = () => {
         <Link to="/" className="nav-link" onClick={handleLinkClick}>Home</Link>
 
         <div className="nav-dropdown-wrapper">
-          <button
+            <Link to="/courses" ><button
             className="nav-link dropdown-toggle"
             onClick={() => setCoursesDropdownOpen(!coursesDropdownOpen)}
             aria-expanded={coursesDropdownOpen}
           >
-            Courses
+           
+           Courses
             <span className="dropdown-arrow">▼</span>
-          </button>
+          </button> </Link>
+          
           {courses.length > 0 && (
             <div className={`dropdown-content ${coursesDropdownOpen ? 'active' : ''}`}>
               {courses.map(c => (
                 <Link
                   key={c._id}
-                  to={`/courses#${c._id}`}
+                  to={`/courses/${c._id}`}
                   className="dropdown-item"
                   onClick={handleLinkClick}
                 >

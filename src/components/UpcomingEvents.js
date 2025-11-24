@@ -1,5 +1,4 @@
 import React from 'react';
-import './UpcomingEvents.css'; // Import the external CSS file
 
 const EVENTS = [
   { title: 'Science Fair 2025', date: '2025-02-20', location: 'Main Hall', desc: 'Project showcase and awards.' },
@@ -15,22 +14,22 @@ export default function UpcomingEvents() {
         <h2 id="events-heading">Upcoming events</h2>
       </div>
 
-      <div className="events-grid">
+      <div className="events-grid" style={{ marginTop: 12 }}>
         {EVENTS.map((e, i) => (
           <div key={i} className="event">
-            <div className="event-header">
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
               <div>
-                <h3>{e.title}</h3>
+                <h3 style={{ margin: 0 }}>{e.title}</h3>
                 <div className="small-muted">{e.location}</div>
               </div>
-              <div className="event-date">
-                <div>{e.date}</div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontWeight: 700 }}>{e.date}</div>
                 <div className="small-muted">Date</div>
               </div>
             </div>
-            <p className="small-muted event-desc">{e.desc}</p>
-            <div className="event-actions">
-              <button>Details</button>
+            <p className="small-muted" style={{ marginTop: 10 }}>{e.desc}</p>
+            <div style={{ marginTop: 10 }}>
+              <button style={{ padding:'8px 12px', borderRadius:8, border:'1px solid rgba(2,6,23,0.06)', background:'#333', color:'#fff' }}>Details</button>
             </div>
           </div>
         ))}

@@ -52,7 +52,7 @@ function App() {
                 <Route path="/courses/:courseId" element={<CoursePage />} />
           <Route path="/events/past" element={<PastEvents />} />
           <Route path="/events/future" element={<FutureEvents />} />
-          <Route path="/events/:id" element={<EventDetail />} />
+          <Route path="/events/:eventId" element={<EventDetail />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/login" element={<Login />} />
           <Route path="/not-authorized" element={<NotAuthorized />} />

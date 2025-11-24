@@ -3,10 +3,9 @@ import { ChevronRight, CheckCircle, Clock, BookOpen, AlertCircle } from 'lucide-
 import { supabase } from '../lib/supabase';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate, useParams } from 'react-router-dom';
-import './CoursePage.css';
 
 const CoursePage = () => {
-  const navigate = useNavigate(); // Ensure navigate is defined
+  const navigate = useNavigate();
   const { courseId } = useParams();
   const [courseData, setCourseData] = useState(null);
   const [currentVideoId, setCurrentVideoId] = useState(null);
@@ -18,845 +17,316 @@ const CoursePage = () => {
   const [error, setError] = useState(null);
   const { user, loading: authLoading } = useContext(AuthContext);
 
-  // Validate courseId format before making the API call
-  const isValidObjectId = (id) => typeof id === 'string' && /^[0-9a-fA-F]{24}$/.test(id);
+  const isValidObjectId = (id) => /^[0-9a-fA-F]{24}$/.test(id);
 
-  // Fetch course data
+  // Fetch course
   useEffect(() => {
-    if (!courseId) {
-      setError('Course id missing in URL');
-      setLoading(false);
-      return;
-    }
-
-    if (!isValidObjectId(courseId)) {
-      console.error('Invalid courseId format:', courseId);
-      setError('Invalid courseId format');
+    if (!courseId || !isValidObjectId(courseId)) {
+      setError('Invalid course ID');
       setLoading(false);
       return;
     }
 
     fetch(`${process.env.REACT_APP_API_BASE || 'http://localhost:5000'}/api/courses/${courseId}`)
       .then(res => {
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
+        if (!res.ok) throw new Error('Failed to load course');
         return res.json();
       })
       .then(data => {
         setCourseData(data.course);
-        const firstModule = data.course.modules[0];
-        const firstVideo = firstModule?.videos[0];
-        if (firstVideo) {
-          setCurrentVideoId(firstVideo.id);
-        }
+        const firstVideo = data.course.modules[0]?.videos[0];
+        if (firstVideo) setCurrentVideoId(firstVideo.id);
         setLoading(false);
       })
       .catch(err => {
-        console.error('Failed to fetch course details:', err);
         setError(err.message);
         setLoading(false);
       });
   }, [courseId]);
 
-  // Ensure the user is logged in and is a registered club member
+  // Auth & membership
   useEffect(() => {
-    if (authLoading) return; // wait until auth state is known
+    if (authLoading) return;
+    if (!user) return navigate('/login');
 
-    if (!user) {
-      navigate('/login'); // Redirect to login page if not logged in
-      return;
-    }
-
-    const checkMember = async () => {
+    const checkMembership = async () => {
       try {
-        // Prefer server-side centralized membership check to avoid relying on Supabase table shape.
-        // Get current session to pass access token to server
-        const sessionResult = await supabase.auth.getSession();
-        // supabase.auth.getSession() returns { data: { session } }
-        const session = sessionResult?.data?.session || sessionResult?.session || sessionResult?.data;
-        const accessToken = session?.access_token || session?.accessToken || session?.provider_token;
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) return navigate('/not-authorized');
 
-        if (!accessToken) {
-          navigate('/not-authorized');
-          return;
-        }
-
-        const resp = await fetch(`${process.env.REACT_APP_API_BASE || 'http://localhost:5000'}/api/registration/check`, {
-          headers: { 'Authorization': `Bearer ${accessToken}` }
+        const res = await fetch(`${process.env.REACT_APP_API_BASE || 'http://localhost:5000'}/api/registration/check`, {
+          headers: { Authorization: `Bearer ${session.access_token}` }
         });
-
-        if (!resp.ok) {
-          console.error('Membership check endpoint returned status', resp.status);
-          navigate('/not-authorized');
-          return;
-        }
-
-        const body = await resp.json();
-        if (body.allowed) {
-          // allowed
-          return;
-        }
-
-        // Not allowed — optionally surface reason
-        console.warn('Membership check denied:', body.reason);
+        const body = await res.json();
+        if (!res.ok || !body.allowed) navigate('/not-authorized');
+      } catch {
         navigate('/not-authorized');
-        return;
-      } catch (err) {
-        console.error('Error checking membership', err);
-        setError('Failed to verify membership: ' + (err && (err.message || String(err))));
-        return;
       }
     };
-
-    checkMember();
+    checkMembership();
   }, [user, authLoading, navigate]);
 
-  const generateMCQQuestions = (videoId) => {
+  const generateQuestions = (videoId) => {
     if (!courseData) return [];
-
-    const allVideos = courseData.modules.flatMap(m => m.videos);
+    const allVideos = courseData.modules.flatMap(m => m.videos || []);
     const video = allVideos.find(v => v.id === videoId);
-
     if (!video) return [];
-    // Prefer quizzes provided as top-level mapping (legacy/seeded data)
-    const quizQuestions = courseData.quizzes?.[videoId];
-    if (Array.isArray(quizQuestions) && quizQuestions.length > 0) return quizQuestions;
 
-    // Otherwise, find module that contains this video and use module.questions if present
-    const moduleContaining = courseData.modules.find(m => (m.videos || []).some(v => v.id === videoId));
-    if (moduleContaining && Array.isArray(moduleContaining.questions) && moduleContaining.questions.length > 0) {
-      // Convert module.questions (server format) -> frontend expected format { question, options, correct }
-      return moduleContaining.questions.map(q => {
-        const options = Array.isArray(q.options) ? q.options : [];
-        // `answer` on server may be the correct option text; convert to index
-        let correct = 0;
-        if (q.answer && options.length) {
-          const idx = options.indexOf(q.answer);
-          if (idx >= 0) correct = idx;
-        }
-        return { question: q.text || q.question || 'Question', options, correct };
-      });
+    if (courseData.quizzes?.[videoId]?.length) return courseData.quizzes[videoId];
+
+    const module = courseData.modules.find(m => m.videos?.some(v => v.id === videoId));
+    if (module?.questions?.length) {
+      return module.questions.map(q => ({
+        question: q.text || q.question || '',
+        options: q.options || [],
+        correct: q.options?.indexOf(q.answer) >= 0 ? q.options.indexOf(q.answer) : 0
+      }));
     }
 
-    // Fallback default questions
     return [
-      { question: "What was the main topic of this video?", options: ["Option A", "Option B", "Option C", "Option D"], correct: 0 },
-      { question: "Which of the following best describes the content?", options: ["Description 1", "Description 2", "Description 3", "Description 4"], correct: 1 }
+      { question: "What was the main topic?", options: ["A", "B", "C", "D"], correct: 0 },
+      { question: "Key takeaway?", options: ["1", "2", "3", "4"], correct: 2 }
     ];
   };
 
-  if (loading) {
-    return (
-      <div style={styles.loadingContainer}>
-        <div style={styles.spinner}></div>
-        <p style={styles.loadingText}>Loading course...</p>
-      </div>
-    );
-  }
+  if (loading) return <div className="loading">Loading course...</div>;
+  if (error || !courseData) return <div className="error">Error: {error || 'Course not found'}</div>;
 
-  if (error) {
-    return (
-      <div style={styles.errorContainer}>
-        <div style={styles.errorBox}>
-          <div style={styles.errorHeader}>
-            <AlertCircle size={24} style={styles.errorIcon} />
-            <p style={styles.errorTitle}>Error Loading Course</p>
-          </div>
-          <p style={styles.errorMessage}>{error}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!courseData) {
-    return (
-      <div style={styles.noDataContainer}>
-        <p style={styles.noDataText}>No course data available</p>
-      </div>
-    );
-  }
-
-  const allVideos = courseData.modules.flatMap(m => m.videos);
+  const allVideos = courseData.modules.flatMap(m => m.videos || []);
   const currentVideo = allVideos.find(v => v.id === currentVideoId);
-  const currentVideoIndex = allVideos.findIndex(v => v.id === currentVideoId);
-  const totalVideos = allVideos.length;
-  const isLastVideo = currentVideoIndex === totalVideos - 1;
-  const courseCompleted = completedVideos.size === totalVideos;
-  const mcqQuestions = generateMCQQuestions(currentVideoId);
+  const currentIndex = allVideos.findIndex(v => v.id === currentVideoId);
+  const total = allVideos.length;
+  const isLast = currentIndex === total - 1;
+  const completedAll = completedVideos.size === total;
+  const questions = generateQuestions(currentVideoId);
 
-  const handleVideoComplete = () => {
-    setShowQuiz(true);
-    setQuizSubmitted(false);
-    setQuizAnswers({});
-  };
+  const score = questions.filter((q, i) => quizAnswers[i] === q.correct).length;
+  const passed = score >= Math.ceil(questions.length / 2);
 
-  const handleAnswerChange = (questionIndex, optionIndex) => {
-    if (!quizSubmitted) {
-      setQuizAnswers(prev => ({
-        ...prev,
-        [questionIndex]: optionIndex
-      }));
-    }
-  };
-
-  const handleSubmitQuiz = () => {
-    setQuizSubmitted(true);
-  };
-
-  const handleNextVideo = () => {
-    setCompletedVideos(prev => new Set([...prev, currentVideoId]));
-    if (!isLastVideo) {
-      setCurrentVideoId(allVideos[currentVideoIndex + 1].id);
-      setShowQuiz(false);
-    }
-  };
-
-  const getQuizScore = () => {
-    let correct = 0;
-    mcqQuestions.forEach((q, idx) => {
-      if (quizAnswers[idx] === q.correct) correct++;
-    });
-    return { correct, total: mcqQuestions.length };
-  };
-
-  const goToVideo = (videoId) => {
-    setCurrentVideoId(videoId);
+  const goToVideo = (id) => {
+    setCurrentVideoId(id);
     setShowQuiz(false);
     setQuizSubmitted(false);
     setQuizAnswers({});
   };
 
-  const quizScore = getQuizScore();
-  const quizPassed = quizScore.correct >= Math.ceil(quizScore.total / 2);
+  const nextVideo = () => {
+    setCompletedVideos(prev => new Set([...prev, currentVideoId]));
+    if (!isLast) {
+      setCurrentVideoId(allVideos[currentIndex + 1].id);
+      setShowQuiz(false);
+      setQuizAnswers({});
+      setQuizSubmitted(false);
+    }
+  };
 
   return (
-    <div style={styles.container}>
-      {/* Header */}
-      <div style={styles.header}>
-        <div style={styles.headerContent}>
-          <h1 style={styles.headerTitle}>{courseData.title}</h1>
-          <p style={styles.headerDescription}>{courseData.description}</p>
-          <div style={styles.progressTextContainer}>
-            <span style={styles.progressText}>
-              Progress: {completedVideos.size} of {totalVideos} videos completed
-            </span>
-          </div>
-          <div style={styles.progressBarContainer}>
-            <div 
-              style={{
-                ...styles.progressBar,
-                width: `${(completedVideos.size / totalVideos) * 100}%`
-              }}
-            ></div>
-          </div>
-        </div>
-      </div>
+    <>
+      {/* === ALL CSS IN ONE PLACE === */}
+      <style jsx>{`
+        .course-page { min-height: 100vh; background: linear-gradient(135deg, #181c2b 0%, #232946 100%); color: #f3f6fa; font-family: system-ui, sans-serif; }
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
 
-      <div style={styles.contentWrapper}>
-        {courseCompleted ? (
-          <div style={styles.completionContainer}>
-            <CheckCircle size={96} style={styles.completionIcon} />
-            <h2 style={styles.completionTitle}>Course Completed!</h2>
-            <p style={styles.completionMessage}>
-              Congratulations! You have successfully completed all modules and videos.
-            </p>
-            <div style={styles.certificateBox}>
-              <p style={styles.certificateTitle}>Certificate of Completion</p>
-              <p style={styles.certificateCourse}>{courseData.title}</p>
+        /* Header */
+        .header { background: #1e293b; border-bottom: 1px solid #3f3f46; padding: 32px 0; position: sticky; top: 0; z-index: 10; }
+        .header h1 { font-size: 2.2rem; color: #eebf3f; margin: 0 0 12px; }
+        .header p { color: #b8c1ec; font-size: 1.1rem; margin: 8px 0 20px; }
+        .progress-text { color: #9ca3af; font-size: 0.95rem; }
+        .progress-bar { margin-top: 12px; height: 10px; background: #3f3f46; border-radius: 999px; overflow: hidden; }
+        .progress-fill { height: 100%; background: #eebf3f; transition: width 0.4s ease; }
+
+        /* Layout */
+        .layout { display: grid; gap: 40px; margin: 40px 0; grid-template-columns: 1fr 360px; }
+        @media (max-width: 1024px) {
+          .layout { grid-template-columns: 1fr; gap: 48px; }
+          .sidebar { order: 2; margin-top: 20px; }
+        }
+
+        /* Cards */
+        .card { background: #1e293b; border: 1px solid #3f3f46; border-radius: 16px; overflow: hidden; }
+        .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; background: #000; }
+        .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+        .placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; background: #0f172a; color: #94a3b8; }
+        .video-info { padding: 32px; }
+        .video-info h3 { font-size: 1.6rem; margin: 0 0 12px; }
+        .duration { display: flex; align-items: center; gap: 8px; color: #94a3b8; margin: 16px 0; }
+        .btn { padding: 14px 32px; border: none; border-radius: 12px; font-weight: 600; font-size: 1.1rem; cursor: pointer; width: 100%; margin-top: 20px; transition: 0.3s; }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-success { background: #22c55e; color: white; }
+        .btn:hover { opacity: 0.9; }
+
+        /* Quiz */
+        .quiz { padding: 40px 32px; }
+        .quiz h3 { font-size: 1.8rem; color: #eebf3f; margin-bottom: 32px; }
+        .question { background: #2d3748; padding: 24px; border-radius: 12px; margin-bottom: 20px; }
+        .question p { font-weight: 600; margin-bottom: 16px; }
+        .option { display: flex; align-items: center; background: #4a5568; padding: 14px 20px; margin: 8px 0; border-radius: 10px; cursor: pointer; transition: 0.3s; }
+        .option input { margin-right: 12px; transform: scale(1.2); }
+        .option.correct { background: #166534; border: 2px solid #22c55e; color: #86efac; }
+        .option.wrong { background: #7f1d1d; border: 2px solid #ef4444; color: #fca5a5; }
+        .result { margin-top: 32px; text-align: center; }
+        .score-box { padding: 24px; border-radius: 12px; font-size: 1.4rem; font-weight: bold; }
+        .pass { background: rgba(34,197,94,0.3); border: 2px solid #22c55e; color: #86efac; }
+        .fail { background: rgba(239,68,68,0.3); border: 2px solid #ef4444; color: #fca5a5; }
+
+        /* Sidebar */
+        .sidebar-inner { padding: 28px; border-radius: 16px; background: #1e293b; border: 1px solid #3f3f46; position: sticky; top: 130px; }
+        .sidebar-inner h3 { font-size: 1.4rem; margin-bottom: 24px; color: #eebf3f; }
+        .module-title { color: #cbd5e1; font-weight: 600; margin: 24px 0 12px; font-size: 1rem; }
+        .video-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 12px 16px; background: #334155; border-radius: 10px; border: none; color: #e2e8f0; text-align: left; cursor: pointer; margin-bottom: 8px; transition: 0.3s; }
+        .video-btn:hover { background: #475569; }
+        .video-btn.active { background: #2563eb; font-weight: 600; }
+        .video-btn.completed { background: #166534; color: #86efac; }
+        .check-icon { color: #22c55e; margin-left: 10px; }
+
+        /* Completion */
+        .completion { text-align: center; padding: 100px 20px; }
+        .completion h2 { font-size: 3rem; color: #eebf3f; }
+        .certificate { margin-top: 40px; padding: 32px; background: rgba(34,197,94,0.2); border: 2px solid #22c55e; border-radius: 16px; color: #86efac; font-size: 1.5rem; }
+
+        /* Loading & Error */
+        .loading, .error { min-height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; font-size: 1.5rem; }
+        .loading::before { content: ''; width: 60px; height: 60px; border: 5px solid #334155; border-top-color: #eebf3f; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
+
+      <div className="course-page">
+        {/* Header */}
+        <header className="header">
+          <div className="container">
+            <h1>{courseData.title}</h1>
+            <p>{courseData.description}</p>
+            <div className="progress-text">
+              Progress: {completedVideos.size} / {total} videos completed
+            </div>
+            <div className="progress-bar">
+              <div className="progress-fill" style={{ width: `${(completedVideos.size / total) * 100}%` }} />
             </div>
           </div>
-        ) : (
-          <div style={styles.mainGrid}>
-            {/* Main Video Section */}
-            <div style={styles.mainSection}>
-              {!showQuiz ? (
-                <div style={styles.videoCard}>
-                  <div style={styles.videoPlaceholder}>
-                    {currentVideo?.youtube_link ? (
-                      <iframe
-                        width="100%"
-                        height="100%"
-                        src={currentVideo.youtube_link.replace('watch?v=', 'embed/')}
-                        title={currentVideo.title}
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      ></iframe>
-                    ) : (
-                      <>
-                        <BookOpen size={64} style={styles.videoIcon} />
-                        <p style={styles.videoPlaceholderTitle}>{currentVideo?.title}</p>
-                      </>
-                    )}
-                  </div>
-                  <div style={styles.videoContent}>
-                    <h3 style={styles.videoTitle}>{currentVideo?.title}</h3>
-                    <p style={styles.videoDescription}>{currentVideo?.description}</p>
-                    {currentVideo?.duration && (
-                      <p style={styles.videoDuration}>
-                        <Clock size={16} style={styles.durationIcon} />
-                        Duration: {currentVideo.duration} minutes
-                      </p>
-                    )}
-                    <button
-                      onClick={handleVideoComplete}
-                      style={styles.completeButton}
-                      className="cp-button cp-button-primary"
-                    >
-                      Complete & Take Quiz
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div style={styles.quizCard}>
-                  <h3 style={styles.quizTitle}>Quiz: {currentVideo?.title}</h3>
-                  {mcqQuestions.length > 0 ? (
-                    <>
-                      <div style={styles.quizContent}>
-                        {mcqQuestions.map((q, idx) => (
-                          <div key={idx} style={styles.questionContainer}>
-                            <p style={styles.questionText}>{idx + 1}. {q.question}</p>
-                            <div style={styles.optionsContainer}>
-                              {q.options.map((option, optIdx) => (
-                                <label key={optIdx} style={styles.optionLabel}>
-                                  <input
-                                    type="radio"
-                                    name={`question-${idx}`}
-                                    checked={quizAnswers[idx] === optIdx}
-                                    onChange={() => handleAnswerChange(idx, optIdx)}
-                                    disabled={quizSubmitted}
-                                    style={styles.radioInput}
-                                  />
-                                  <span style={styles.optionText}>{option}</span>
-                                  {quizSubmitted && optIdx === q.correct && (
-                                    <CheckCircle size={20} style={styles.correctIcon} />
-                                  )}
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+        </header>
 
-                      {!quizSubmitted ? (
-                        <button
-                          onClick={handleSubmitQuiz}
-                          style={styles.submitButton}
-                          className="cp-button cp-button-success"
-                        >
-                          Submit Quiz
-                        </button>
-                      ) : (
-                        <div style={styles.resultContainer}>
-                          <div style={{
-                            ...styles.resultBox,
-                            background: quizPassed ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-                            borderColor: quizPassed ? '#16a34a' : '#dc2626'
-                          }}>
-                            <p style={styles.scoreText}>Score: {quizScore.correct}/{quizScore.total}</p>
-                            <p style={{
-                              ...styles.resultText,
-                              color: quizPassed ? '#4ade80' : '#f87171'
-                            }}>
-                              {quizPassed ? 'Great job! Ready to continue?' : 'Try again to proceed.'}
-                            </p>
-                          </div>
-                          {quizPassed && (
-                            <button
-                              onClick={handleNextVideo}
-                              style={styles.nextButton}
-                              className="cp-button cp-button-primary"
-                            >
-                              {isLastVideo ? 'Finish Course' : 'Next Video'}
-                              <ChevronRight size={20} style={styles.nextButtonIcon} />
-                            </button>
-                          )}
+        <div className="container">
+          {completedAll ? (
+            <div className="completion">
+              <CheckCircle size={96} style={{ color: '#22c55e', marginBottom: '24px' }} />
+              <h2>Congratulations!</h2>
+              <p>You've completed the entire course!</p>
+              <div className="certificate">Certificate of Completion – {courseData.title}</div>
+            </div>
+          ) : (
+            <div className="layout">
+              {/* Main Content */}
+              <main>
+                {!showQuiz ? (
+                  <div className="card">
+                    {currentVideo?.youtube_link ? (
+                      <div className="video-wrapper">
+                        <iframe
+                          src={currentVideo.youtube_link.replace('watch?v=', 'embed/')}
+                          title={currentVideo.title}
+                          allowFullScreen
+                        />
+                      </div>
+                    ) : (
+                      <div className="placeholder">
+                        <BookOpen size={80} />
+                        <h3>{currentVideo?.title}</h3>
+                      </div>
+                    )}
+                    <div className="video-info">
+                      <h3>{currentVideo?.title}</h3>
+                      <p>{currentVideo?.description}</p>
+                      {currentVideo?.duration && (
+                        <div className="duration">
+                          <Clock size={16} /> {currentVideo.duration} min
                         </div>
                       )}
-                    </>
-                  ) : (
-                    <div style={styles.noQuizContainer}>
-                      <p style={styles.noQuizText}>No quiz questions available for this video.</p>
+                      <button onClick={() => setShowQuiz(true)} className="btn btn-primary">
+                        Complete & Take Quiz
+                      </button>
                     </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Sidebar */}
-            <div style={styles.sidebar}>
-              <div style={styles.sidebarContent}>
-                <h3 style={styles.sidebarTitle}>Course Content</h3>
-                <div style={styles.modulesContainer}>
-                  {courseData.modules.map(module => (
-                    <div key={module.id} style={styles.moduleSection}>
-                      <p style={styles.moduleName}>{module.title}</p>
-                      <div style={styles.videosListContainer}>
-                        {module.videos.map(video => {
-                          const isCompleted = completedVideos.has(video.id);
-                          const isCurrent = video.id === currentVideoId;
-                          
-                            const vbClass = `video-button ${isCurrent ? 'current' : ''} ${isCompleted ? 'completed' : ''} ${(!isCurrent && !isCompleted) ? 'accessible' : ''}`;
-                            return (
-                              <button
-                                key={video.id}
-                                onClick={() => goToVideo(video.id)}
-                                className={vbClass}
-                                style={{ ...styles.videoButton }}
-                              >
-                                <div style={styles.videoButtonContent}>
-                                  <span style={styles.videoButtonText}>{video.title}</span>
-                                  {isCompleted && <CheckCircle size={16} style={styles.videoCheckIcon} />}
-                                </div>
-                                {video.duration && (
-                                  <div style={styles.videoDurationSmall}>
-                                    <Clock size={12} style={styles.durationIconSmall} />
-                                    {video.duration} min
-                                  </div>
-                                )}
-                              </button>
-                            );
-                        })}
+                  </div>
+                ) : (
+                  <div className="card quiz">
+                    <h3>Quiz: {currentVideo?.title}</h3>
+                    {questions.map((q, i) => (
+                      <div key={i} className="question">
+                        <p>{i + 1}. {q.question}</p>
+                        {q.options.map((opt, j) => (
+                          <label key={j} className={`option ${quizSubmitted ? (j === q.correct ? 'correct' : quizAnswers[i] === j ? 'wrong' : '') : ''}`}>
+                            <input
+                              type="radio"
+                              name={`q${i}`}
+                              disabled={quizSubmitted}
+                              checked={quizAnswers[i] === j}
+                              onChange={() => !quizSubmitted && setQuizAnswers(prev => ({ ...prev, [i]: j }))}
+                            />
+                            {opt}
+                            {quizSubmitted && j === q.correct && <CheckCircle size={20} className="check-icon" />}
+                          </label>
+                        ))}
                       </div>
+                    ))}
+
+                    {!quizSubmitted ? (
+                      <button onClick={() => setQuizSubmitted(true)} className="btn btn-success">
+                        Submit Quiz
+                      </button>
+                    ) : (
+                      <div className="result">
+                        <div className={`score-box ${passed ? 'pass' : 'fail'}`}>
+                          Score: {score} / {questions.length}
+                        </div>
+                        <p>{passed ? 'Great job! Ready to continue?' : 'Try again to proceed.'}</p>
+                        {passed && (
+                          <button onClick={nextVideo} className="btn btn-primary">
+                            {isLast ? 'Finish Course' : 'Next Video'} <ChevronRight size={20} style={{ marginLeft: '8px' }} />
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </main>
+
+              {/* Sidebar – goes below on mobile */}
+              <aside className="sidebar">
+                <div className="card sidebar-inner">
+                  <h3>Course Content</h3>
+                  {courseData.modules.map(mod => (
+                    <div key={mod.id}>
+                      <div className="module-title">{mod.title}</div>
+                      {mod.videos?.map(video => {
+                        const done = completedVideos.has(video.id);
+                        const active = video.id === currentVideoId;
+                        return (
+                          <button
+                            key={video.id}
+                            onClick={() => goToVideo(video.id)}
+                            className={`video-btn ${active ? 'active' : ''} ${done ? 'completed' : ''}`}
+                          >
+                            <span>{video.title}</span>
+                            <div>
+                              {done && <CheckCircle size={16} className="check-icon" />}
+                              {video.duration && (
+                                <span style={{ fontSize: '0.8rem', opacity: 0.7, marginLeft: '8px' }}>
+                                  <Clock size={12} /> {video.duration}m
+                                </span>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
                   ))}
                 </div>
-              </div>
+              </aside>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
-};
-
-const styles = {
-  container: {
-    minHeight: '100vh',
-    background: 'linear-gradient(135deg, #181c2b 0%, #232946 100%)',
-    color: '#f3f6fa',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  loadingContainer: {
-    minHeight: '100vh',
-    background: 'linear-gradient(135deg, #181c2b 0%, #232946 100%)',
-    color: '#f3f6fa',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  spinner: {
-    width: '48px',
-    height: '48px',
-    border: '3px solid rgba(243, 246, 250, 0.3)',
-    borderTop: '3px solid #eebf3f',
-    borderRadius: '50%',
-    animation: 'spin 1s linear infinite',
-    marginBottom: '16px',
-  },
-  loadingText: {
-    fontSize: '20px',
-  },
-  errorContainer: {
-    minHeight: '100vh',
-    background: 'linear-gradient(135deg, #181c2b 0%, #232946 100%)',
-    color: '#f3f6fa',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  errorBox: {
-    background: '#7f1d1d',
-    border: '1px solid #dc2626',
-    borderRadius: '12px',
-    padding: '24px',
-    maxWidth: '448px',
-  },
-  errorHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    marginBottom: '16px',
-  },
-  errorIcon: {
-    marginRight: '8px',
-    color: '#f87171',
-  },
-  errorTitle: {
-    fontSize: '18px',
-    fontWeight: '600',
-    margin: 0,
-  },
-  errorMessage: {
-    color: '#cbd5e1',
-    margin: 0,
-  },
-  noDataContainer: {
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  noDataText: {
-    fontSize: '20px',
-  },
-  header: {
-    background: '#1e293b',
-    borderBottom: '1px solid #3f3f46',
-    position: 'sticky',
-    top: 0,
-    zIndex: 10,
-  },
-  headerContent: {
-    maxWidth: '1280px',
-    margin: '0 auto',
-    padding: '24px',
-    width: '100%',
-  },
-  headerTitle: {
-    fontSize: '30px',
-    fontWeight: '700',
-    margin: 0,
-    marginBottom: '8px',
-    color: '#eebf3f',
-  },
-  headerDescription: {
-    color: '#b8c1ec',
-    marginTop: '4px',
-    fontSize: '16px',
-  },
-  progressTextContainer: {
-    marginTop: '12px',
-  },
-  progressText: {
-    fontSize: '14px',
-    color: '#9ca3af',
-  },
-  progressBarContainer: {
-    marginTop: '12px',
-    width: '100%',
-    background: '#3f3f46',
-    borderRadius: '9999px',
-    height: '8px',
-    overflow: 'hidden',
-  },
-  progressBar: {
-    background: '#eebf3f',
-    height: '100%',
-    transition: 'width 0.3s ease',
-  },
-  contentWrapper: {
-    maxWidth: '1280px',
-    margin: '0 auto',
-    padding: '32px 24px',
-    width: '100%',
-    flex: 1,
-  },
-  completionContainer: {
-    textAlign: 'center',
-    paddingTop: '80px',
-  },
-  completionIcon: {
-    margin: '0 auto 16px',
-    color: '#22c55e',
-  },
-  completionTitle: {
-    fontSize: '36px',
-    fontWeight: '700',
-    margin: '0 0 24px',
-    color: '#eebf3f',
-  },
-  completionMessage: {
-    fontSize: '20px',
-    color: '#9ca3af',
-    marginBottom: '24px',
-  },
-  certificateBox: {
-    background: 'rgba(34, 197, 94, 0.2)',
-    border: '1px solid #16a34a',
-    borderRadius: '8px',
-    padding: '16px',
-    display: 'inline-block',
-  },
-  certificateTitle: {
-    color: '#4ade80',
-    fontWeight: '600',
-    margin: 0,
-  },
-  certificateCourse: {
-    color: '#4ade80',
-    fontSize: '14px',
-    marginTop: '8px',
-  },
-  mainGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(4, 1fr)',
-    gap: '32px',
-  },
-  mainSection: {
-    gridColumn: 'span 3',
-  },
-  videoCard: {
-    background: '#1e293b',
-    borderRadius: '12px',
-    overflow: 'hidden',
-    border: '1px solid #3f3f46',
-  },
-  videoPlaceholder: {
-    background: '#0f172a',
-    aspectRatio: '16 / 9',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  videoIcon: {
-    color: '#60a5fa',
-    marginBottom: '16px',
-  },
-  videoPlaceholderTitle: {
-    fontSize: '20px',
-    fontWeight: '600',
-    margin: 0,
-  },
-  videoUrl: {
-    color: '#9ca3af',
-    marginTop: '8px',
-    fontSize: '14px',
-  },
-  videoContent: {
-    padding: '24px',
-  },
-  videoTitle: {
-    fontSize: '24px',
-    fontWeight: '700',
-    margin: '0 0 16px',
-  },
-  videoDescription: {
-    color: '#cbd5e1',
-    marginBottom: '8px',
-  },
-  videoDuration: {
-    color: '#9ca3af',
-    fontSize: '14px',
-    marginBottom: '24px',
-    display: 'flex',
-    alignItems: 'center',
-  },
-  durationIcon: {
-    marginRight: '8px',
-  },
-  completeButton: {
-    background: '#2563eb',
-    color: 'white',
-    fontWeight: '600',
-    padding: '12px 32px',
-    borderRadius: '8px',
-    border: 'none',
-    cursor: 'pointer',
-    fontSize: '16px',
-    transition: 'background 0.3s',
-  },
-  quizCard: {
-    background: '#1e293b',
-    borderRadius: '12px',
-    border: '1px solid #3f3f46',
-    padding: '24px',
-  },
-  quizTitle: {
-    fontSize: '24px',
-    fontWeight: '700',
-    marginBottom: '24px',
-  },
-  quizContent: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
-  },
-  questionContainer: {
-    background: '#3f3f46',
-    borderRadius: '8px',
-    padding: '16px',
-  },
-  questionText: {
-    fontWeight: '600',
-    marginBottom: '16px',
-  },
-  optionsContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-  },
-  optionLabel: {
-    display: 'flex',
-    alignItems: 'center',
-    padding: '12px',
-    background: '#52525b',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    transition: 'background 0.3s',
-  },
-  radioInput: {
-    width: '16px',
-    height: '16px',
-    marginRight: '12px',
-    cursor: 'pointer',
-  },
-  optionText: {
-    flex: 1,
-  },
-  correctIcon: {
-    color: '#4ade80',
-    marginLeft: 'auto',
-  },
-  submitButton: {
-    background: '#22c55e',
-    color: 'white',
-    fontWeight: '600',
-    padding: '12px 32px',
-    borderRadius: '8px',
-    border: 'none',
-    cursor: 'pointer',
-    fontSize: '16px',
-    marginTop: '32px',
-    width: '100%',
-    transition: 'background 0.3s',
-  },
-  resultContainer: {
-    marginTop: '32px',
-  },
-  resultBox: {
-    padding: '16px',
-    borderRadius: '8px',
-    marginBottom: '16px',
-    border: '1px solid',
-  },
-  scoreText: {
-    fontWeight: '600',
-    margin: 0,
-  },
-  resultText: {
-    margin: '8px 0 0',
-  },
-  nextButton: {
-    background: '#2563eb',
-    color: 'white',
-    fontWeight: '600',
-    padding: '12px 32px',
-    borderRadius: '8px',
-    border: 'none',
-    cursor: 'pointer',
-    fontSize: '16px',
-    width: '100%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'background 0.3s',
-  },
-  nextButtonIcon: {
-    marginLeft: '8px',
-  },
-  noQuizContainer: {
-    textAlign: 'center',
-    paddingTop: '32px',
-  },
-  noQuizText: {
-    color: '#cbd5e1',
-  },
-  sidebar: {
-    gridColumn: 'span 1',
-  },
-  sidebarContent: {
-    background: '#1e293b',
-    borderRadius: '12px',
-    border: '1px solid #3f3f46',
-    padding: '16px',
-    position: 'sticky',
-    top: '128px',
-  },
-  sidebarTitle: {
-    fontWeight: '700',
-    fontSize: '18px',
-    marginBottom: '16px',
-  },
-  modulesContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-    maxHeight: '384px',
-    overflowY: 'auto',
-  },
-  moduleSection: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  moduleName: {
-    color: '#cbd5e1',
-    fontWeight: '600',
-    fontSize: '14px',
-    marginBottom: '8px',
-  },
-  videosListContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-    paddingLeft: '8px',
-  },
-  videoButton: {
-    textAlign: 'left',
-    padding: '8px',
-    borderRadius: '6px',
-    fontSize: '14px',
-    border: 'none',
-    cursor: 'pointer',
-    transition: 'background 0.3s',
-    color: 'white',
-  },
-  videoButtonCurrent: {
-    background: '#2563eb',
-    color: 'white',
-  },
-  videoButtonCompleted: {
-    background: '#1e3a1f',
-    color: '#4ade80',
-  },
-  videoButtonAccessible: {
-    background: '#3f3f46',
-    color: '#cbd5e1',
-  },
-  videoButtonDisabled: {
-    background: '#3f3f46',
-    color: '#6b7280',
-    cursor: 'not-allowed',
-    opacity: 0.5,
-  },
-  videoButtonContent: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  videoButtonText: {
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-    flex: 1,
-  },
-  videoCheckIcon: {
-    marginLeft: '8px',
-    flexShrink: 0,
-  },
-  videoDurationSmall: {
-    fontSize: '12px',
-    marginTop: '4px',
-    opacity: 0.75,
-    display: 'flex',
-    alignItems: 'center',
-  },
-  durationIconSmall: {
-    marginRight: '4px',
-  },
 };
 
 export default CoursePage;

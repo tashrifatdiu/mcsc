@@ -1,6 +1,5 @@
 import React from 'react';
 import MemberCard from './MemberCard';
-import './Team.css'; // Import the external CSS file
 
 const TEAM = [
   { name: 'Ayesha Rahman', role: 'President', bio: 'Physics enthusiast & competition lead', image: '/images/team-placeholder-1.svg' },
@@ -20,7 +19,7 @@ export default function Team() {
 
       <p className="small-muted">A diverse group of students who run workshops, guide projects and manage the club.</p>
 
-      <div className="team-grid">
+      <div className="team-grid" style={{ marginTop: 14 }}>
         {TEAM.map(m => <MemberCard key={m.name} {...m} />)}
       </div>
     </div>

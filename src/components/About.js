@@ -1,5 +1,4 @@
 import React from 'react';
-import './About.css'; // Import the external CSS file
 
 export default function About() {
   return (
@@ -14,7 +13,14 @@ export default function About() {
         We organize workshops, competitions, and science communication activities to empower students across grades 9–12.
       </p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 18, marginTop: 16 }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr',
+          gap: 18,
+          marginTop: 16,
+        }}
+      >
         <div>
           <p>
             Our mission is to make science accessible and exciting. We host regular sessions on physics, chemistry, biology,
@@ -30,7 +36,15 @@ export default function About() {
           </ul>
         </div>
 
-        <aside style={{ padding: 14, borderRadius: 12, background: 'linear-gradient(180deg,#333,#444)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}>
+        <aside
+          style={{
+            padding: 14,
+            borderRadius: 12,
+            background: 'linear-gradient(180deg,#333,#444)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            color: '#fff',
+          }}
+        >
           <h4 style={{ margin: '0 0 8px 0' }}>Quick facts</h4>
           <p style={{ margin: 0 }}><strong>Members:</strong> 200+</p>
           <p style={{ margin: 0 }}><strong>Established:</strong> 2016</p>
