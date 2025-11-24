@@ -42,6 +42,11 @@ export default function Login() {
         password: form.password
       });
 
+      if (error?.status === 400 && error.message.includes('email')) {
+        setStatus({ type: 'error', message: 'Please check your email to confirm your registration before logging in.' });
+        return;
+      }
+
       if (error) {
         setStatus({ type: 'error', message: error.message || 'Login failed' });
       } else {
@@ -70,8 +75,8 @@ export default function Login() {
           console.warn('Storage handling failed:', err);
         }
 
-        // Redirect to admin-verify (or home)
-        setTimeout(() => navigate('/admin-verify', { replace: true }), 700);
+        // Redirect to home
+        setTimeout(() => navigate('/', { replace: true }), 700);
       }
     } catch (err) {
       console.error('Login error:', err);
