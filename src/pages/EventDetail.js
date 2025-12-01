@@ -55,7 +55,7 @@ export default function EventDetail() {
 
           <button
             onClick={() => navigate(-1)}
-            className="absolute top-8 left-8 p-3 bg-white/10 backdrop-blur-xl rounded-full hover:bg-white/20 transition"
+            className="absolute top-8 left-8 p-3 bg-blue-800 backdrop-blur-xl rounded-full hover:bg-blue-900 transition"
           >
             <ChevronLeft size={32} />
           </button>
@@ -101,7 +101,7 @@ export default function EventDetail() {
             {/* Left Arrow */}
             <button
               onClick={prevImage}
-              className="p-5 bg-white/10 hover:bg-white/20 rounded-xl transition-all duration-300 hover:scale-110 active:scale-95"
+              className="p-5 bg-blue-800 hover:bg-blue-900 rounded-xl transition-all duration-300 hover:scale-110 active:scale-95"
             >
               <ChevronLeft size={36} className="text-white" />
             </button>
@@ -109,7 +109,7 @@ export default function EventDetail() {
             {/* Right Arrow */}
             <button
               onClick={nextImage}
-              className="p-5 bg-white/10 hover:bg-white/20 rounded-xl transition-all duration-300 hover:scale-110 active:scale-95"
+              className="p-5 bg-blue-800 hover:bg-blue-900 rounded-full transition-transform duration-300 hover:scale-125 active:scale-100 shadow-lg"
             >
               <ChevronRight size={36} className="text-white" />
             </button>
