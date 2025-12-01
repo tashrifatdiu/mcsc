@@ -355,7 +355,7 @@ export default function Footer() {
               </div>
             </div>
           </div>
-
+                
           <div className="divider"></div>
 
           {/* Bottom Section */}

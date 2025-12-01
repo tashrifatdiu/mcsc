@@ -50,7 +50,7 @@ export default function PastEvents() {
                 <div className="relative bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-2xl border border-white/20 rounded-3xl overflow-hidden shadow-2xl group-hover:shadow-2xl group-hover:shadow-${event.glow} transition-all duration-700">
                   <div className="relative h-96 overflow-hidden">
                     <img
-                      src={`/images/${event.cover}`}
+                      src={event.cover}
                       alt={event.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
                     />
