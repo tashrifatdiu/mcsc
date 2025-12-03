@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Plus, Minus, Trash2, Package, X } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Trash2, Package, X, LogIn } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import useAuth from '../lib/useAuth';
+import { useNavigate } from 'react-router-dom';
 import './Merchandise.css';
 
 // Import images
@@ -93,6 +94,7 @@ const ALL_PRODUCTS = {
 
 export default function Merchandise() {
   const user = useAuth();
+  const navigate = useNavigate();
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
   const [profile, setProfile] = useState(null);
@@ -203,13 +205,20 @@ export default function Merchandise() {
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
     
+    // Require login
+    if (!user) {
+      setMessage({ type: 'error', text: 'Please login to place an order!' });
+      setTimeout(() => navigate('/login'), 2000);
+      return;
+    }
+    
     if (cart.length === 0) {
       setMessage({ type: 'error', text: 'Your cart is empty!' });
       return;
     }
 
-    if (!orderForm.name || !orderForm.email || !orderForm.phone || !orderForm.address) {
-      setMessage({ type: 'error', text: 'Please fill in all required fields!' });
+    if (!orderForm.address) {
+      setMessage({ type: 'error', text: 'Please enter your delivery address!' });
       return;
     }
 
@@ -370,10 +379,23 @@ export default function Merchandise() {
                   <h3>Total: ৳{getTotalPrice()}</h3>
                 </div>
 
-                <form onSubmit={handlePlaceOrder} className="order-form">
-                  <h3>Student Information</h3>
-                  
-                  {profile && (
+                {!user ? (
+                  <div className="login-required">
+                    <LogIn size={48} />
+                    <h3>Login Required</h3>
+                    <p>Please login to place your order</p>
+                    <button 
+                      className="login-btn"
+                      onClick={() => navigate('/login')}
+                    >
+                      Go to Login
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handlePlaceOrder} className="order-form">
+                    <h3>Student Information</h3>
+                    
+                    {profile && (
                     <div className="profile-info-section">
                       <div className="profile-field">
                         <label>Full Name</label>
@@ -479,34 +501,6 @@ export default function Merchandise() {
                     </>
                   )}
                   
-                  {!user && (
-                    <>
-                      <input
-                        type="text"
-                        placeholder="Full Name *"
-                        value={orderForm.name}
-                        onChange={(e) => setOrderForm({ ...orderForm, name: e.target.value })}
-                        required
-                      />
-                      
-                      <input
-                        type="email"
-                        placeholder="Email *"
-                        value={orderForm.email}
-                        onChange={(e) => setOrderForm({ ...orderForm, email: e.target.value })}
-                        required
-                      />
-                      
-                      <input
-                        type="tel"
-                        placeholder="Phone Number *"
-                        value={orderForm.phone}
-                        onChange={(e) => setOrderForm({ ...orderForm, phone: e.target.value })}
-                        required
-                      />
-                    </>
-                  )}
-                  
                   <h3 style={{ marginTop: '1.5rem' }}>Delivery Information</h3>
                   
                   <textarea
@@ -532,6 +526,7 @@ export default function Merchandise() {
                     {submitting ? 'Placing Order...' : 'Place Order'}
                   </button>
                 </form>
+                )}
               </>
             )}
           </div>

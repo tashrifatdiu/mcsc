@@ -3,34 +3,44 @@ import { submitRegistration } from '../api';
 import '../index.css';
 import { supabase } from '../lib/supabase';
 
-// helpers to generate sections (same as before)
-function generateLetterPairs() {
-  const letters = [];
-  for (let i = 0; i < 26; i++) letters.push(String.fromCharCode(97 + i));
-  const doubles = [];
+// Generate section options: A-Z boys, A-Z girls, AA-ZZ boys/girls, AAA-ZZZ boys/girls
+function generateSectionOptions() {
+  const sections = [];
+  
+  // Single letters: A boys to Z boys, then A girls to Z girls
   for (let i = 0; i < 26; i++) {
-    for (let j = 0; j < 26; j++) {
-      doubles.push(String.fromCharCode(97 + i) + String.fromCharCode(97 + j));
-    }
+    const letter = String.fromCharCode(65 + i); // A-Z (uppercase)
+    sections.push(`${letter} boys`);
   }
-  return { letters, doubles };
+  for (let i = 0; i < 26; i++) {
+    const letter = String.fromCharCode(65 + i);
+    sections.push(`${letter} girls`);
+  }
+  
+  // Double letters: AA-ZZ boys, then AA-ZZ girls
+  for (let i = 0; i < 26; i++) {
+    const letter = String.fromCharCode(65 + i);
+    sections.push(`${letter}${letter} boys`);
+  }
+  for (let i = 0; i < 26; i++) {
+    const letter = String.fromCharCode(65 + i);
+    sections.push(`${letter}${letter} girls`);
+  }
+  
+  // Triple letters: AAA-ZZZ boys, then AAA-ZZZ girls
+  for (let i = 0; i < 26; i++) {
+    const letter = String.fromCharCode(65 + i);
+    sections.push(`${letter}${letter}${letter} boys`);
+  }
+  for (let i = 0; i < 26; i++) {
+    const letter = String.fromCharCode(65 + i);
+    sections.push(`${letter}${letter}${letter} girls`);
+  }
+  
+  return sections;
 }
 
-const { letters, doubles } = generateLetterPairs();
-const buildSectionOptions = () => {
-  const boys = [];
-  const girls = [];
-  letters.forEach(l => {
-    boys.push(`${l} boys`);
-    girls.push(`${l} girls`);
-  });
-  doubles.forEach(d => {
-    boys.push(`${d} boys`);
-    girls.push(`${d} girls`);
-  });
-  return { boys, girls };
-};
-const { boys, girls } = buildSectionOptions();
+const sectionOptions = generateSectionOptions();
 
 // Building options kept same as before (if applicable)
 const buildingOptions = [
@@ -84,7 +94,7 @@ const RegistrationRequest = () => {
     name: '',
     code: '',
     class: '9',
-    section: 'a boys',
+    section: 'A boys',
     campus: 'main campus',
     version: 'english',
     department: 'science',
@@ -115,7 +125,7 @@ const RegistrationRequest = () => {
           name: '',
           code: '',
           class: '9',
-          section: 'a boys',
+          section: 'A boys',
           campus: 'main campus',
           version: 'english',
           department: 'science',
@@ -199,12 +209,7 @@ const RegistrationRequest = () => {
         <label>
           Section *
           <select name="section" value={form.section} onChange={onChange}>
-            <optgroup label="Boys">
-              {boys.map((s) => <option key={s} value={s}>{s}</option>)}
-            </optgroup>
-            <optgroup label="Girls">
-              {girls.map((s) => <option key={s} value={s}>{s}</option>)}
-            </optgroup>
+            {sectionOptions.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
         </label>
 

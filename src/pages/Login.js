@@ -1,8 +1,9 @@
 // client/src/pages/Login.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import '../index.css';
 import { supabase } from '../lib/supabase';
+import useAuth from '../lib/useAuth';
 
 function validateEmail(email) {
   return /\S+@\S+\.\S+/.test(email);
@@ -10,10 +11,18 @@ function validateEmail(email) {
 
 export default function Login() {
   const navigate = useNavigate();
+  const user = useAuth();
   const [form, setForm] = useState({ email: '', password: '', remember: false });
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState(null); // { type: 'error'|'success', message }
   const [showPassword, setShowPassword] = useState(false);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   function onChange(e) {
     const { name, value, type, checked } = e.target;
@@ -44,11 +53,34 @@ export default function Login() {
 
       if (error?.status === 400 && error.message.includes('email')) {
         setStatus({ type: 'error', message: 'Please check your email to confirm your registration before logging in.' });
+        setLoading(false);
+        return;
+      }
+
+      if (error) {
+        // Check for common email confirmation errors
+        const errorMsg = error.message || 'Login failed';
+        if (errorMsg.toLowerCase().includes('email') || errorMsg.toLowerCase().includes('confirm')) {
+          setStatus({ 
+            type: 'error', 
+            message: '⚠️ Email not confirmed. Please check your inbox and click the confirmation link before logging in.' 
+          });
+        } else if (errorMsg.toLowerCase().includes('invalid') || errorMsg.toLowerCase().includes('credentials')) {
+          setStatus({ 
+            type: 'error', 
+            message: 'Invalid email or password. Please try again.' 
+          });
+        } else {
+          setStatus({ type: 'error', message: errorMsg });
+        }
+        setLoading(false);
         return;
       }
 
       if (error) {
         setStatus({ type: 'error', message: error.message || 'Login failed' });
+        setLoading(false);
+        return;
       } else {
         // data may contain session and user
         setStatus({ type: 'success', message: 'Logged in successfully.' });

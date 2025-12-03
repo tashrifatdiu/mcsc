@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../index.css';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
+import useAuth from '../lib/useAuth';
 
 const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
 
@@ -18,36 +19,48 @@ function passwordStrength(pw) {
   return score; // 0..4
 }
 
-// Reuse the same section generator used in RegistrationRequest
-function generateLetterPairs() {
-  const letters = [];
-  for (let i = 0; i < 26; i++) letters.push(String.fromCharCode(97 + i));
-  const doubles = [];
+// Generate section options: A-Z boys, A-Z girls, AA-ZZ boys/girls, AAA-ZZZ boys/girls
+function generateSectionOptions() {
+  const sections = [];
+  
+  // Single letters: A boys to Z boys, then A girls to Z girls
   for (let i = 0; i < 26; i++) {
-    for (let j = 0; j < 26; j++) {
-      doubles.push(String.fromCharCode(97 + i) + String.fromCharCode(97 + j));
-    }
+    const letter = String.fromCharCode(65 + i); // A-Z (uppercase)
+    sections.push(`${letter} boys`);
   }
-  return { letters, doubles };
+  for (let i = 0; i < 26; i++) {
+    const letter = String.fromCharCode(65 + i);
+    sections.push(`${letter} girls`);
+  }
+  
+  // Double letters: AA-ZZ boys, then AA-ZZ girls
+  for (let i = 0; i < 26; i++) {
+    const letter = String.fromCharCode(65 + i);
+    sections.push(`${letter}${letter} boys`);
+  }
+  for (let i = 0; i < 26; i++) {
+    const letter = String.fromCharCode(65 + i);
+    sections.push(`${letter}${letter} girls`);
+  }
+  
+  // Triple letters: AAA-ZZZ boys, then AAA-ZZZ girls
+  for (let i = 0; i < 26; i++) {
+    const letter = String.fromCharCode(65 + i);
+    sections.push(`${letter}${letter}${letter} boys`);
+  }
+  for (let i = 0; i < 26; i++) {
+    const letter = String.fromCharCode(65 + i);
+    sections.push(`${letter}${letter}${letter} girls`);
+  }
+  
+  return sections;
 }
-const { letters, doubles } = generateLetterPairs();
-const buildSectionOptions = () => {
-  const boys = [];
-  const girls = [];
-  letters.forEach(l => {
-    boys.push(`${l} boys`);
-    girls.push(`${l} girls`);
-  });
-  doubles.forEach(d => {
-    boys.push(`${d} boys`);
-    girls.push(`${d} girls`);
-  });
-  return { boys, girls };
-};
-const { boys, girls } = buildSectionOptions();
+
+const sectionOptions = generateSectionOptions();
 
 export default function SignUp() {
   const navigate = useNavigate();
+  const user = useAuth();
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -57,11 +70,20 @@ export default function SignUp() {
     department: 'science',
     version: 'english',
     whatsapp: '',
-    section: 'a boys'
+    section: 'A boys'
   });
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState(null); // { type: 'error'|'success', message }
   const [showPassword, setShowPassword] = useState(false);
+  const [signupComplete, setSignupComplete] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   function onChange(e) {
     const { name, value } = e.target;
@@ -133,8 +155,10 @@ export default function SignUp() {
         // You may want to save a pending profile server-side via email as key — left as future step
       }
 
-      const successMsg = supabaseId ? 'Account created and profile saved.' : 'Account created. Please check your email to confirm and then login.';
-      setStatus({ type: 'success', message: successMsg });
+      // Always show email confirmation message
+      setUserEmail(form.email.trim().toLowerCase());
+      setSignupComplete(true);
+      setStatus({ type: 'success', message: 'Account created successfully!' });
 
       // Clear sensitive fields
       setForm({
@@ -146,10 +170,10 @@ export default function SignUp() {
         department: 'science',
         version: 'english',
         whatsapp: '',
-        section: 'a boys'
+        section: 'A boys'
       });
 
-      setTimeout(() => navigate('/login'), 1200);
+      // Don't auto-redirect - let user read the confirmation message
     } catch (err) {
       console.error('Signup error:', err);
       setStatus({ type: 'error', message: 'Network or server error' });
@@ -161,6 +185,52 @@ export default function SignUp() {
   const strength = passwordStrength(form.password);
   const strengthLabels = ['Very weak', 'Weak', 'Okay', 'Good', 'Strong'];
   const strengthColors = ['#ef4444', '#f97316', '#f59e0b', '#10b981', '#0ea5a0'];
+
+  // Show email confirmation screen after successful signup
+  if (signupComplete) {
+    return (
+      <div className="card form-card" style={{ maxWidth: 720, margin: '20px auto', textAlign: 'center' }}>
+        <div style={{ padding: '2rem 0' }}>
+          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>📧</div>
+          <h2 style={{ marginTop: 0, color: '#10b981' }}>Check Your Email!</h2>
+          <p style={{ fontSize: '1.1rem', color: '#475569', marginBottom: '1.5rem' }}>
+            We've sent a confirmation email to:
+          </p>
+          <p style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '2rem' }}>
+            {userEmail}
+          </p>
+          <div style={{ background: '#f1f5f9', padding: '1.5rem', borderRadius: '8px', marginBottom: '2rem', textAlign: 'left' }}>
+            <h3 style={{ marginTop: 0, fontSize: '1rem', color: '#334155' }}>Next Steps:</h3>
+            <ol style={{ color: '#475569', lineHeight: '1.8', paddingLeft: '1.5rem' }}>
+              <li>Open your email inbox</li>
+              <li>Look for an email from Milestone College Science Club</li>
+              <li>Click the confirmation link in the email</li>
+              <li>Once confirmed, return here and login</li>
+            </ol>
+          </div>
+          <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '1.5rem' }}>
+            <strong>Important:</strong> You must confirm your email before you can login. 
+            If you don't see the email, check your spam folder.
+          </p>
+          <button 
+            onClick={() => navigate('/login')} 
+            className="btn btn-primary"
+            style={{ marginTop: '1rem' }}
+          >
+            Go to Login Page
+          </button>
+          <div style={{ marginTop: '1rem' }}>
+            <button 
+              onClick={() => setSignupComplete(false)} 
+              className="btn btn-ghost"
+            >
+              Back to Signup
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="card form-card" style={{ maxWidth: 720, margin: '20px auto' }}>
@@ -207,12 +277,7 @@ export default function SignUp() {
         <label>
           Section
           <select name="section" value={form.section} onChange={onChange}>
-            <optgroup label="Boys">
-              {boys.map(s => <option key={s} value={s}>{s}</option>)}
-            </optgroup>
-            <optgroup label="Girls">
-              {girls.map(s => <option key={s} value={s}>{s}</option>)}
-            </optgroup>
+            {sectionOptions.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
         </label>
 
