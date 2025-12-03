@@ -25,6 +25,7 @@ import EventDetail from './pages/EventDetail';
 import CoursePage from './pages/CoursePage';
 import NotAuthorized from './pages/NotAuthorized';
 import CertificateManagement from './pages/CertificateManagement';
+import Merchandise from './pages/Merchandise';
 
 function App() {
   return (
@@ -58,6 +59,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/not-authorized" element={<NotAuthorized />} />
           <Route path="/certificate-management" element={<CertificateManagement />} />
+          <Route path="/merchandise" element={<Merchandise />} />
           {/* existing routes */}
         </Routes>
       </main>

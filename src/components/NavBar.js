@@ -156,6 +156,7 @@ const NavBar = () => {
         <Link to="/journal/gallery" className="nav-link" onClick={handleLinkClick}>Gallery</Link>
         <Link to="/events/past" className="nav-link" onClick={handleLinkClick}>Past Events</Link>
         <Link to="/events/future" className="nav-link" onClick={handleLinkClick}>Upcoming</Link>
+        <Link to="/merchandise" className="nav-link" onClick={handleLinkClick}>Merchandise</Link>
         <Link to="/registration-request" className="nav-link" onClick={handleLinkClick}>Register</Link>
         <Link to="/admin-verify" className="nav-link" onClick={handleLinkClick}>Verify</Link>
 
