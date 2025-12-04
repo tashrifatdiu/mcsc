@@ -22,8 +22,10 @@ import AuthorWorks from './pages/AuthorWorks';
 import SignUp from './pages/SignUp';
 import Login from './pages/Login';
 import PastEvents from './pages/PastEvents';
+import PastEventsNew from './pages/PastEventsNew';
 import FutureEvents from './pages/FutureEvents';
 import EventDetail from './pages/EventDetail';
+import EventDetailNew from './pages/EventDetailNew';
 import CoursePage from './pages/CoursePage';
 import NotAuthorized from './pages/NotAuthorized';
 import CertificateManagement from './pages/CertificateManagement';
@@ -55,9 +57,9 @@ function App() {
                 <Route path="/courses" element={<Courses />} />
                 <Route path="/admin/courses" element={<AdminCourses />} />
                 <Route path="/courses/:courseId" element={<CoursePage />} />
-          <Route path="/events/past" element={<PastEvents />} />
+          <Route path="/events/past" element={<PastEventsNew />} />
           <Route path="/events/future" element={<FutureEvents />} />
-          <Route path="/events/:eventId" element={<EventDetail />} />
+          <Route path="/events/:eventId" element={<EventDetailNew />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/login" element={<Login />} />
           <Route path="/not-authorized" element={<NotAuthorized />} />
