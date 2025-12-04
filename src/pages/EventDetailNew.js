@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, MapPin, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin } from 'lucide-react';
+import ImageLightbox from '../components/ImageLightbox';
 import './EventDetailNew.css';
 
 const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
@@ -13,8 +14,6 @@ export default function EventDetailNew() {
   const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [visibleImages, setVisibleImages] = useState(6);
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
 
   useEffect(() => {
     if (eventId) {
@@ -50,78 +49,21 @@ export default function EventDetailNew() {
     });
   };
 
-  const openLightbox = (index) => {
-    setSelectedImage(index);
-    // Prevent body scroll
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
-  };
-
-  const closeLightbox = () => {
-    setSelectedImage(null);
-    // Re-enable body scroll
-    document.documentElement.style.overflow = '';
-    document.body.style.overflow = '';
-  };
-
-  const nextImage = () => {
+  const handleNextImage = () => {
     if (event?.images) {
       setSelectedImage((prev) => (prev + 1) % event.images.length);
     }
   };
 
-  const prevImage = () => {
+  const handlePrevImage = () => {
     if (event?.images) {
       setSelectedImage((prev) => (prev - 1 + event.images.length) % event.images.length);
     }
   };
 
-  const handleTouchStart = (e) => {
-    setTouchStart(e.targetTouches[0].clientX);
+  const handleCloseLightbox = () => {
+    setSelectedImage(null);
   };
-
-  const handleTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe) {
-      nextImage();
-    }
-    if (isRightSwipe) {
-      prevImage();
-    }
-
-    setTouchStart(0);
-    setTouchEnd(0);
-  };
-
-  useEffect(() => {
-    const handleKeyPress = (e) => {
-      if (selectedImage === null) return;
-      
-      if (e.key === 'ArrowLeft') prevImage();
-      if (e.key === 'ArrowRight') nextImage();
-      if (e.key === 'Escape') closeLightbox();
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [selectedImage, event]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      document.documentElement.style.overflow = '';
-      document.body.style.overflow = '';
-    };
-  }, []);
 
   if (loading) {
     return (
@@ -183,7 +125,7 @@ export default function EventDetailNew() {
                 <div
                   key={index}
                   className="gallery-card"
-                  onClick={() => openLightbox(index)}
+                  onClick={() => setSelectedImage(index)}
                 >
                   <img src={image} alt={`Photo ${index + 1}`} loading="lazy" />
                   <div className="image-number">{index + 1}</div>
@@ -205,37 +147,13 @@ export default function EventDetailNew() {
 
       {/* Lightbox */}
       {selectedImage !== null && event.images && (
-        <div className="lightbox" onClick={closeLightbox}>
-          <button className="lightbox-close" onClick={closeLightbox}>
-            <X size={32} />
-          </button>
-          
-          <div className="lightbox-counter">
-            {String(selectedImage + 1).padStart(2, '0')} / {String(event.images.length).padStart(2, '0')}
-          </div>
-
-          <div className="lightbox-image-container">
-            <img 
-              src={event.images[selectedImage]} 
-              alt={`Photo ${selectedImage + 1}`}
-              onClick={(e) => e.stopPropagation()}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-            />
-          </div>
-
-          <div className="lightbox-nav">
-            <button className="lightbox-prev" onClick={(e) => { e.stopPropagation(); prevImage(); }}>
-              <ChevronLeft size={32} />
-            </button>
-            <button className="lightbox-next" onClick={(e) => { e.stopPropagation(); nextImage(); }}>
-              <ChevronRight size={32} />
-            </button>
-          </div>
-
-          <div className="swipe-hint">← Swipe →</div>
-        </div>
+        <ImageLightbox
+          images={event.images}
+          currentIndex={selectedImage}
+          onClose={handleCloseLightbox}
+          onNext={handleNextImage}
+          onPrev={handlePrevImage}
+        />
       )}
     </div>
   );
