@@ -1,8 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Calendar, MapPin, X, ZoomIn, ArrowLeft } from 'lucide-react';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
 import './EventDetail.css';
 
 const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
@@ -27,19 +25,8 @@ export default function EventDetail() {
     };
     
     window.addEventListener('resize', handleResize);
-    
-    // Disable AOS on mobile for better performance
-    AOS.init({ 
-      duration: isMobile ? 0 : 600,
-      once: true,
-      offset: 50,
-      delay: 0,
-      easing: 'ease-out',
-      disable: isMobile
-    });
-
     return () => window.removeEventListener('resize', handleResize);
-  }, [isMobile]);
+  }, []);
 
   useEffect(() => {
     if (eventId) {
@@ -111,16 +98,16 @@ export default function EventDetail() {
     }
   };
 
-  const openGallery = (index) => {
+  const openGallery = useCallback((index) => {
     setCurrentIndex(index);
     setIsGalleryOpen(true);
     document.body.style.overflow = 'hidden';
-  };
+  }, []);
 
-  const closeGallery = () => {
+  const closeGallery = useCallback(() => {
     setIsGalleryOpen(false);
     document.body.style.overflow = '';
-  };
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -175,7 +162,7 @@ export default function EventDetail() {
           <ArrowLeft size={24} />
         </button>
 
-        <div className="hero-content" data-aos="fade-up">
+        <div className="hero-content">
           <h1>{event.title}</h1>
           <p className="hero-subtitle">{event.shortDescription}</p>
           <div className="hero-meta">
@@ -194,7 +181,7 @@ export default function EventDetail() {
       {/* Description Section */}
       <div className="event-description">
         <div className="container">
-          <div className="description-card" data-aos="fade-up">
+          <div className="description-card">
             <h2>About This Event</h2>
             <p>{event.description}</p>
           </div>
@@ -205,7 +192,7 @@ export default function EventDetail() {
       {event.images && event.images.length > 0 && (
         <div className="event-gallery-section">
           <div className="container">
-            <h2 className="gallery-title" data-aos="fade-up">Event Gallery</h2>
+            <h2 className="gallery-title">Event Gallery</h2>
             
             <div className="gallery-grid">
               {event.images.map((image, index) => {
@@ -214,16 +201,16 @@ export default function EventDetail() {
                 
                 return (
                   <div
-                    key={index}
+                    key={`gallery-${index}`}
                     className="gallery-item"
-                    data-aos={index < 6 ? "zoom-in" : ""}
-                    data-aos-delay={index < 6 ? index * 50 : 0}
                     onClick={() => openGallery(index)}
+                    style={{ animationDelay: `${index * 0.05}s` }}
                   >
                     <img 
                       src={image} 
                       alt={`Gallery ${index + 1}`}
                       loading="lazy"
+                      decoding="async"
                     />
                     <div className="gallery-overlay">
                       <ZoomIn size={40} />
