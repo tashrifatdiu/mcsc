@@ -7,15 +7,6 @@
   -webkit-overflow-scrolling: touch;
 }
 
-/* Prevent animation loops on mobile */
-@media (max-width: 768px) {
-  .event-detail-page [data-aos] {
-    transform: none !important;
-    opacity: 1 !important;
-    transition: none !important;
-  }
-}
-
 /* Loading Screen */
 .event-loading {
   min-height: 100vh;
@@ -545,10 +536,24 @@
   }
 
   /* Prevent scroll jitter on mobile */
+  .event-detail-page {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .event-description,
-  .event-gallery-section {
+  .event-gallery-section,
+  .event-hero {
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  /* Reduce AOS animation intensity on mobile */
+  .event-detail-page [data-aos] {
+    transition-duration: 0.3s !important;
   }
 
   .back-btn {

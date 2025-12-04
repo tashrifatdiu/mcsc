@@ -20,9 +20,11 @@ export default function EventDetail() {
 
   useEffect(() => {
     AOS.init({ 
-      duration: 800,
+      duration: 600,
       once: true,
-      disable: 'mobile'
+      offset: 50,
+      delay: 0,
+      easing: 'ease-out'
     });
   }, []);
 
