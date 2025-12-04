@@ -14,6 +14,7 @@ export default function EventDetailNew() {
   const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [visibleImages, setVisibleImages] = useState(6);
+  const [touchStart, setTouchStart] = useState(0);
 
   useEffect(() => {
     if (eventId) {
@@ -63,6 +64,23 @@ export default function EventDetailNew() {
 
   const handleCloseLightbox = () => {
     setSelectedImage(null);
+  };
+
+  const handleTouchStart = (e) => {
+    setTouchStart(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e) => {
+    const touchEnd = e.changedTouches[0].clientX;
+    const diff = touchStart - touchEnd;
+
+    if (Math.abs(diff) > 50) {
+      if (diff > 0 && selectedImage < event.images.length - 1) {
+        handleNextImage();
+      } else if (diff < 0 && selectedImage > 0) {
+        handlePrevImage();
+      }
+    }
   };
 
   if (loading) {
@@ -119,42 +137,79 @@ export default function EventDetailNew() {
         {/* Gallery */}
         {event.images && event.images.length > 0 && (
           <section className="gallery-section">
-            <h2>Event Gallery ({event.images.length} Photos)</h2>
-            <div className="simple-gallery">
-              {imagesToShow.map((image, index) => (
-                <div
-                  key={index}
-                  className="gallery-card"
-                  onClick={() => setSelectedImage(index)}
-                >
-                  <img src={image} alt={`Photo ${index + 1}`} loading="lazy" />
-                  <div className="image-number">{index + 1}</div>
+            {selectedImage === null ? (
+              <>
+                <h2>Event Gallery ({event.images.length} Photos)</h2>
+                <div className="simple-gallery">
+                  {imagesToShow.map((image, index) => (
+                    <div
+                      key={index}
+                      className="gallery-card"
+                      onClick={() => setSelectedImage(index)}
+                    >
+                      <img src={image} alt={`Photo ${index + 1}`} loading="lazy" />
+                      <div className="image-number">{index + 1}</div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            
-            {hasMore && (
-              <button 
-                className="load-more-button"
-                onClick={() => setVisibleImages(prev => prev + 6)}
-              >
-                Load More ({event.images.length - visibleImages} remaining)
-              </button>
+                
+                {hasMore && (
+                  <button 
+                    className="load-more-button"
+                    onClick={() => setVisibleImages(prev => prev + 6)}
+                  >
+                    Load More ({event.images.length - visibleImages} remaining)
+                  </button>
+                )}
+              </>
+            ) : (
+              <div className="inline-image-viewer">
+                <div className="viewer-header">
+                  <button className="back-to-gallery" onClick={handleCloseLightbox}>
+                    <ArrowLeft size={20} />
+                    Back to Gallery
+                  </button>
+                  <span className="image-counter">
+                    {selectedImage + 1} / {event.images.length}
+                  </span>
+                </div>
+                
+                <div 
+                  className="viewer-image-container"
+                  onTouchStart={handleTouchStart}
+                  onTouchEnd={handleTouchEnd}
+                >
+                  <img 
+                    src={event.images[selectedImage]} 
+                    alt={`Photo ${selectedImage + 1}`}
+                    className="viewer-image"
+                  />
+                  <div className="swipe-indicator">← Swipe →</div>
+                </div>
+
+                <div className="viewer-controls">
+                  <button 
+                    className="viewer-btn"
+                    onClick={handlePrevImage}
+                    disabled={selectedImage === 0}
+                  >
+                    ← Previous
+                  </button>
+                  <button 
+                    className="viewer-btn"
+                    onClick={handleNextImage}
+                    disabled={selectedImage === event.images.length - 1}
+                  >
+                    Next →
+                  </button>
+                </div>
+              </div>
             )}
           </section>
         )}
       </div>
 
-      {/* Lightbox */}
-      {selectedImage !== null && event.images && (
-        <ImageLightbox
-          images={event.images}
-          currentIndex={selectedImage}
-          onClose={handleCloseLightbox}
-          onNext={handleNextImage}
-          onPrev={handlePrevImage}
-        />
-      )}
+
     </div>
   );
 }
