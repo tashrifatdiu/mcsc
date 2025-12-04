@@ -19,7 +19,14 @@ export default function EventDetail() {
   const touchStartY = useRef(0);
 
   useEffect(() => {
-    AOS.init({ duration: 800 });
+    AOS.init({ 
+      duration: 800,
+      once: true,
+      disable: 'mobile'
+    });
+  }, []);
+
+  useEffect(() => {
     if (eventId) {
       fetchEvent();
     }
@@ -97,8 +104,15 @@ export default function EventDetail() {
 
   const closeGallery = () => {
     setIsGalleryOpen(false);
-    document.body.style.overflow = 'auto';
+    document.body.style.overflow = '';
   };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -133,7 +147,7 @@ export default function EventDetail() {
   }
 
   return (
-    <>
+    <div className="event-detail-page">
       {/* Hero Section */}
       <div className="event-hero">
         <div className="hero-bg">
@@ -237,6 +251,6 @@ export default function EventDetail() {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
