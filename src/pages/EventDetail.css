@@ -4,9 +4,20 @@
   overflow-x: hidden;
   width: 100%;
   min-height: 100vh;
-  -webkit-overflow-scrolling: touch;
-  transform: translateZ(0);
-  backface-visibility: hidden;
+}
+
+/* Critical: Disable smooth scroll on this page for mobile */
+@media (max-width: 768px) {
+  html.event-detail-active {
+    scroll-behavior: auto !important;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  html.event-detail-active body {
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* Loading Screen */
@@ -178,6 +189,9 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 .hero-overlay {
@@ -305,6 +319,7 @@
   line-height: 1.8;
   color: var(--text-secondary);
   white-space: pre-line;
+  contain: content;
 }
 
 /* Gallery Section */
@@ -532,22 +547,28 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .event-hero {
-    height: 70vh;
+    height: 60vh;
     min-height: 400px;
-    max-height: 70vh;
+    max-height: 60vh;
   }
 
   /* Critical mobile optimizations */
   .event-detail-page {
-    overflow-y: auto;
+    overflow-y: visible;
     overflow-x: hidden;
   }
 
   .event-hero,
   .event-description,
   .event-gallery-section {
-    transform: translate3d(0, 0, 0);
-    -webkit-transform: translate3d(0, 0, 0);
+    will-change: auto;
+  }
+  
+  /* Disable all transforms and effects on mobile */
+  .hero-bg,
+  .hero-overlay,
+  .hero-gradient {
+    transform: none !important;
   }
 
   /* Optimize gallery for mobile performance */

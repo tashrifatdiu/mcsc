@@ -19,13 +19,20 @@ export default function EventDetail() {
   const touchStartY = useRef(0);
 
   useEffect(() => {
+    // Add class to html for CSS targeting
+    document.documentElement.classList.add('event-detail-active');
+    
     // Handle window resize
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
     };
     
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      document.documentElement.classList.remove('event-detail-active');
+    };
   }, []);
 
   useEffect(() => {
