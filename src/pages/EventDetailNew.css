@@ -214,17 +214,16 @@
 /* Lightbox - Beautiful Full Screen Gallery */
 .lightbox {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
   background: rgba(0,0,0,0.98);
-  backdrop-filter: blur(20px);
   z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
   animation: fadeIn 0.3s ease;
   overflow: hidden;
-  touch-action: none;
 }
 
 @keyframes fadeIn {
@@ -238,15 +237,14 @@
 
 .lightbox-image-container {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 5rem 1rem;
+  padding: 6rem 1rem 10rem;
 }
 
 .lightbox-image-container img {
@@ -272,7 +270,7 @@
 }
 
 .lightbox-close {
-  position: absolute;
+  position: fixed;
   top: 2rem;
   right: 2rem;
   width: 56px;
@@ -287,7 +285,7 @@
   color: white;
   cursor: pointer;
   transition: all 0.3s ease;
-  z-index: 10;
+  z-index: 10000;
 }
 
 .lightbox-close:hover {
@@ -296,7 +294,7 @@
 }
 
 .lightbox-nav {
-  position: absolute;
+  position: fixed;
   bottom: 3rem;
   left: 50%;
   transform: translateX(-50%);
@@ -307,7 +305,7 @@
   padding: 1rem;
   border-radius: var(--radius-xl);
   border: 1px solid rgba(255,255,255,0.2);
-  z-index: 10;
+  z-index: 10000;
 }
 
 .lightbox-prev,
@@ -338,7 +336,7 @@
 }
 
 .lightbox-counter {
-  position: absolute;
+  position: fixed;
   top: 2rem;
   left: 50%;
   transform: translateX(-50%);
@@ -351,11 +349,11 @@
   font-weight: 700;
   font-size: 1.1rem;
   font-family: 'Courier New', monospace;
-  z-index: 10;
+  z-index: 10000;
 }
 
 .swipe-hint {
-  position: absolute;
+  position: fixed;
   bottom: 2rem;
   left: 50%;
   transform: translateX(-50%);
@@ -364,6 +362,7 @@
   font-weight: 600;
   animation: bounce 2s ease-in-out infinite;
   display: none;
+  z-index: 10000;
 }
 
 @keyframes bounce {
@@ -408,16 +407,12 @@
     font-size: 1rem;
   }
 
-  .lightbox {
-    padding: 0;
-  }
-
   .lightbox-image-container {
-    padding: 4rem 0.5rem 8rem;
+    padding: 5rem 0.5rem 9rem;
   }
 
   .lightbox-image-container img {
-    max-width: 100%;
+    max-width: 95%;
     max-height: 100%;
     border-radius: var(--radius-md);
   }

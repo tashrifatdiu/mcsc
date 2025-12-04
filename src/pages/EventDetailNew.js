@@ -51,19 +51,22 @@ export default function EventDetailNew() {
   };
 
   const openLightbox = (index) => {
+    console.log('Opening lightbox with index:', index);
+    console.log('Image URL:', event?.images?.[index]);
     setSelectedImage(index);
-    document.body.style.overflow = 'hidden';
+    const scrollY = window.scrollY;
     document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
     document.body.style.width = '100%';
-    document.body.style.height = '100%';
   };
 
   const closeLightbox = () => {
-    setSelectedImage(null);
-    document.body.style.overflow = '';
+    const scrollY = document.body.style.top;
     document.body.style.position = '';
+    document.body.style.top = '';
     document.body.style.width = '';
-    document.body.style.height = '';
+    window.scrollTo(0, parseInt(scrollY || '0') * -1);
+    setSelectedImage(null);
   };
 
   const nextImage = () => {
