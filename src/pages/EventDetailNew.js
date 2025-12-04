@@ -53,11 +53,17 @@ export default function EventDetailNew() {
   const openLightbox = (index) => {
     setSelectedImage(index);
     document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.height = '100%';
   };
 
   const closeLightbox = () => {
     setSelectedImage(null);
     document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    document.body.style.height = '';
   };
 
   const nextImage = () => {
@@ -197,23 +203,31 @@ export default function EventDetailNew() {
           <button className="lightbox-close" onClick={closeLightbox}>
             <X size={32} />
           </button>
-          <button className="lightbox-prev" onClick={(e) => { e.stopPropagation(); prevImage(); }}>
-            <ChevronLeft size={32} />
-          </button>
-          <button className="lightbox-next" onClick={(e) => { e.stopPropagation(); nextImage(); }}>
-            <ChevronRight size={32} />
-          </button>
+          
           <div className="lightbox-counter">
             {String(selectedImage + 1).padStart(2, '0')} / {String(event.images.length).padStart(2, '0')}
           </div>
-          <img 
-            src={event.images[selectedImage]} 
-            alt={`Photo ${selectedImage + 1}`}
-            onClick={(e) => e.stopPropagation()}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-          />
+
+          <div className="lightbox-image-container">
+            <img 
+              src={event.images[selectedImage]} 
+              alt={`Photo ${selectedImage + 1}`}
+              onClick={(e) => e.stopPropagation()}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            />
+          </div>
+
+          <div className="lightbox-nav">
+            <button className="lightbox-prev" onClick={(e) => { e.stopPropagation(); prevImage(); }}>
+              <ChevronLeft size={32} />
+            </button>
+            <button className="lightbox-next" onClick={(e) => { e.stopPropagation(); nextImage(); }}>
+              <ChevronRight size={32} />
+            </button>
+          </div>
+
           <div className="swipe-hint">← Swipe →</div>
         </div>
       )}
