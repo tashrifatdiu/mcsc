@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import useAuth from '../lib/useAuth';
 
 export default function MyDrafts() {
-  const user = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [drafts, setDrafts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

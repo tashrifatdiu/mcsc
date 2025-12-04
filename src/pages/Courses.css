@@ -1,8 +1,8 @@
 /* Basic styles for the Courses page */
 
 body, .course-section {
-  background: linear-gradient(135deg, #181c2b 0%, #232946 100%);
-  color: #f3f6fa;
+  background: var(--bg-primary);
+  color: var(--text-primary);
   min-height: 100vh;
 }
 
@@ -14,7 +14,7 @@ body, .course-section {
 .course-header h1 {
   font-size: 2.2rem;
   font-weight: 700;
-  color: #eebf3f;
+  color: var(--accent-warning);
   margin-bottom: 8px;
 }
 
@@ -22,21 +22,21 @@ body, .course-section {
   display: inline-block;
   margin-right: 16px;
   font-size: 15px;
-  color: #b8c1ec;
+  color: var(--text-secondary);
   background: none;
 }
 
 .course-video iframe {
   border-radius: 16px;
   margin-bottom: 24px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.45);
-  background: #232946;
+  box-shadow: var(--shadow-lg);
+  background: var(--bg-card);
 }
 
 .course-content {
-  background: #232946;
+  background: var(--bg-card);
   border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  box-shadow: var(--shadow-md);
   padding: 18px 24px;
   margin-bottom: 24px;
 }
@@ -51,8 +51,9 @@ body, .course-section {
   justify-content: space-between;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid #2e3350;
+  border-bottom: 1px solid var(--border-medium);
   background: none;
+  color: var(--text-primary);
 }
 
 .course-content li:last-child {
@@ -77,7 +78,7 @@ body, .course-section {
 .course-content .video-btn {
   background: none;
   border: none;
-  color: #eebf3f;
+  color: var(--accent-warning);
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
@@ -87,33 +88,33 @@ body, .course-section {
 
 .course-content .video-btn:active,
 .course-content .video-btn:focus {
-  color: #2ecc71;
+  color: var(--accent-success);
   outline: none;
   transform: scale(1.05);
 }
 
 .course-content .video-btn[disabled] {
-  color: #b8c1ec;
+  color: var(--text-muted);
   cursor: not-allowed;
 }
 
 .course-content .play-button {
   text-decoration: none;
-  color: #eebf3f;
+  color: var(--accent-warning);
   font-size: 20px;
   margin-left: 12px;
 }
 
 .course-summary {
-  background: #232946;
+  background: var(--bg-card);
   border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  box-shadow: var(--shadow-md);
   padding: 18px 24px;
   margin-bottom: 24px;
 }
 
 .course-summary h2 {
-  color: #eebf3f;
+  color: var(--accent-warning);
   font-size: 1.3rem;
   margin-bottom: 10px;
 }
@@ -125,7 +126,7 @@ body, .course-section {
 
 .course-summary li {
   margin-bottom: 10px;
-  color: #b8c1ec;
+  color: var(--text-secondary);
 }
 
 .complete-btn, .submit-quiz-btn {
@@ -148,24 +149,24 @@ body, .course-section {
 }
 
 .quiz-section {
-  background: #232946;
+  background: var(--bg-card);
   border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  box-shadow: var(--shadow-md);
   padding: 18px 24px;
   margin-top: 24px;
-  color: #f3f6fa;
+  color: var(--text-primary);
 }
 
 .quiz-section label {
-  color: #eebf3f;
+  color: var(--accent-warning);
   font-weight: 600;
   margin-right: 8px;
 }
 
 .quiz-section input {
-  background: #181c2b;
-  color: #f3f6fa;
-  border: 1px solid #eebf3f;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--accent-warning);
   border-radius: 8px;
   padding: 6px 12px;
   margin-bottom: 12px;
@@ -190,11 +191,11 @@ body, .course-section {
   box-shadow: 0 4px 16px rgba(0,0,0,0.25);
 }
 
-/* Admin panel inputs - dark background with white text (matches registration request) */
+/* Admin panel inputs */
 .admin-input, .admin-textarea {
-  background: #0f1724 !important;
-  color: #f3f6fa !important;
-  border: 1px solid #2e3350 !important;
+  background: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-medium) !important;
   border-radius: 8px !important;
   padding: 8px 10px !important;
   box-sizing: border-box !important;
@@ -202,7 +203,7 @@ body, .course-section {
 .admin-input { display: block; width: 100%; }
 .admin-textarea { display: block; width: 100%; }
 .admin-input::placeholder, .admin-textarea::placeholder {
-  color: #9aa4c8 !important;
+  color: var(--text-muted) !important;
 }
 .admin-textarea { min-height: 80px; }
 
@@ -210,9 +211,9 @@ body, .course-section {
 .admin-small {
   padding: 6px 8px !important;
   border-radius: 6px !important;
-  background: #0f1724 !important;
-  color: #f3f6fa !important;
-  border: 1px solid #2e3350 !important;
+  background: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-medium) !important;
 }
 /* small inputs should not force full width when used inline */
 .admin-small { display: inline-block; width: auto; }

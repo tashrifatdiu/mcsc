@@ -14,7 +14,7 @@ import 'katex/dist/katex.min.css';
 export default function JournalEditor() {
   const navigate = useNavigate();
   const editorRef = useRef(null);
-  const user = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [title, setTitle] = useState('');
   const [selection, setSelection] = useState(null);
   const [activeTools, setActiveTools] = useState({});
@@ -144,11 +144,11 @@ export default function JournalEditor() {
       case 'h3':
         await toggleBlock(action);
         break;
-      case 'quote':
-        await toggleBlock('blockquote');
+      case 'paragraph':
+        await toggleBlock('p');
         break;
-      case 'code':
-        await toggleCodeBlock();
+      case 'divider':
+        insertDivider();
         break;
       // Lists
       case 'bullet':
@@ -350,6 +350,18 @@ export default function JournalEditor() {
     if (!sel || sel.rangeCount === 0) return;
     const anchor = sel.anchorNode;
 
+    // Special handling for paragraph - always convert to paragraph
+    if (tag === 'p') {
+      const nearest = getNearestBlock(anchor);
+      if (nearest && nearest.tagName.toLowerCase() !== 'p') {
+        const inner = nearest.innerHTML;
+        selectElement(nearest);
+        document.execCommand('insertHTML', false, `<p>${inner}</p>`);
+        setTimeout(() => updateActiveTools(), 20);
+      }
+      return;
+    }
+
     // if the current block is already the target tag, unwrap it back to paragraph
     const existing = getAncestorBlock(anchor, [tag]);
     if (existing) {
@@ -364,7 +376,7 @@ export default function JournalEditor() {
     const nearest = getNearestBlock(anchor);
     if (nearest) {
       const inner = nearest.innerHTML;
-      // replace nearest block with the chosen heading/blockquote
+      // replace nearest block with the chosen heading
       const newHtml = `<${tag}>${inner}</${tag}>`;
       // Replace node by selecting it and inserting newHtml
       selectElement(nearest);
@@ -393,33 +405,32 @@ export default function JournalEditor() {
     }, 20);
   };
 
-  const toggleCodeBlock = async () => {
+  const insertDivider = () => {
+    // Insert a horizontal rule (divider line)
+    const hr = document.createElement('hr');
+    hr.style.border = 'none';
+    hr.style.borderTop = '2px solid #e5e7eb';
+    hr.style.margin = '2rem 0';
+    hr.contentEditable = 'false';
+    
     const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0) return;
-    const anchor = sel.anchorNode;
-    const preAncestor = getAncestorBlock(anchor, ['pre']);
-    if (preAncestor) {
-      // unwrap pre>code into paragraph
-      selectElement(preAncestor);
-      const inner = preAncestor.textContent || preAncestor.innerHTML || '';
-      // preserve text but put into paragraph
-      document.execCommand('insertHTML', false, `<p>${inner}</p>`);
-      setTimeout(() => updateActiveTools(), 20);
-      return;
+    if (sel && sel.rangeCount > 0) {
+      const range = sel.getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(hr);
+      
+      // Insert a paragraph after the divider for continued writing
+      const p = document.createElement('p');
+      p.innerHTML = '<br>';
+      hr.parentNode.insertBefore(p, hr.nextSibling);
+      
+      // Move cursor to the new paragraph
+      const newRange = document.createRange();
+      newRange.setStart(p, 0);
+      newRange.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(newRange);
     }
-
-    // otherwise insert code block and ensure caret is after it
-    const selectedHtml = getSelectedHtml();
-    const safe = selectedHtml || '\n';
-    const html = `<pre><code>${safe}</code></pre>`;
-    document.execCommand('insertHTML', false, html);
-    setTimeout(() => {
-      const sel2 = window.getSelection();
-      if (!sel2 || sel2.rangeCount === 0) return;
-      const node = sel2.anchorNode;
-      const appliedAncestor = getAncestorBlock(node, ['pre']);
-      if (appliedAncestor) insertParagraphAfter(appliedAncestor);
-    }, 20);
   };
 
   const insertChecklist = () => {
@@ -513,6 +524,15 @@ export default function JournalEditor() {
     setTitle(e.target.value);
     setIsDirty(true);
   };
+
+  if (authLoading) {
+    return (
+      <div style={{ maxWidth: 800, margin: '40px auto', padding: 20, textAlign: 'center' }}>
+        <div className="spinner"></div>
+        <p style={{ marginTop: '1rem' }}>Loading...</p>
+      </div>
+    );
+  }
 
   if (!user) {
     // Require login before allowing writing

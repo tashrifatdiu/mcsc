@@ -1,23 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { submitRegistration } from '../api';
+import { useNavigate } from 'react-router-dom';
 import '../index.css';
 import { supabase } from '../lib/supabase';
+import useAuth from '../lib/useAuth';
 
-// Generate section options: A-Z boys, A-Z girls, AA-ZZ boys/girls, AAA-ZZZ boys/girls
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
+
+// Generate section options
 function generateSectionOptions() {
   const sections = [];
-  
-  // Single letters: A boys to Z boys, then A girls to Z girls
   for (let i = 0; i < 26; i++) {
-    const letter = String.fromCharCode(65 + i); // A-Z (uppercase)
+    const letter = String.fromCharCode(65 + i);
     sections.push(`${letter} boys`);
   }
   for (let i = 0; i < 26; i++) {
     const letter = String.fromCharCode(65 + i);
     sections.push(`${letter} girls`);
   }
-  
-  // Double letters: AA-ZZ boys, then AA-ZZ girls
   for (let i = 0; i < 26; i++) {
     const letter = String.fromCharCode(65 + i);
     sections.push(`${letter}${letter} boys`);
@@ -26,8 +25,6 @@ function generateSectionOptions() {
     const letter = String.fromCharCode(65 + i);
     sections.push(`${letter}${letter} girls`);
   }
-  
-  // Triple letters: AAA-ZZZ boys, then AAA-ZZZ girls
   for (let i = 0; i < 26; i++) {
     const letter = String.fromCharCode(65 + i);
     sections.push(`${letter}${letter}${letter} boys`);
@@ -36,13 +33,11 @@ function generateSectionOptions() {
     const letter = String.fromCharCode(65 + i);
     sections.push(`${letter}${letter}${letter} girls`);
   }
-  
   return sections;
 }
 
 const sectionOptions = generateSectionOptions();
 
-// Building options kept same as before (if applicable)
 const buildingOptions = [
   'main building',
   'building 22',
@@ -58,224 +53,446 @@ const buildingOptions = [
 ];
 
 const RegistrationRequest = () => {
-  const [user, setUser] = useState(null);
-  const [authLoaded, setAuthLoaded] = useState(false);
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState(null);
+  const [applicationStatus, setApplicationStatus] = useState(null);
+  const [form, setForm] = useState({
+    code: '',
+    building: 'main building',
+    campus: 'main campus',
+    contactNumber: ''
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [status, setStatus] = useState(null);
 
   useEffect(() => {
     let mounted = true;
-    (async () => {
-      try {
-        const { data } = await supabase.auth.getUser();
-        if (!mounted) return;
-        setUser(data?.user ?? null);
-      } catch (err) {
-        setUser(null);
-      } finally {
-        if (mounted) setAuthLoaded(true);
-      }
-    })();
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
+    async function loadData() {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        // Get access token
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+
+        if (!token) {
+          setLoading(false);
+          return;
+        }
+
+        // Fetch profile
+        const profileRes = await fetch(
+          `${API_BASE}/api/auth/profile?supabaseId=${encodeURIComponent(user.id)}`
+        );
+        
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          if (mounted) {
+            setProfile(profileData.profile);
+          }
+        }
+
+        // Check application status
+        const statusRes = await fetch(`${API_BASE}/api/registration/status`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (statusRes.ok) {
+          const statusData = await statusRes.json();
+          if (mounted) {
+            setApplicationStatus(statusData);
+          }
+        }
+      } catch (err) {
+        console.error('Error loading data:', err);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadData();
 
     return () => {
       mounted = false;
-      if (sub && typeof sub.subscription?.unsubscribe === 'function') {
-        sub.subscription.unsubscribe();
-      } else if (sub?.unsubscribe) {
-        sub.unsubscribe();
-      }
     };
-  }, []);
+  }, [user]);
 
-  // form state and logic (same as previously implemented)
-  const [form, setForm] = useState({
-    name: '',
-    code: '',
-    class: '9',
-    section: 'A boys',
-    campus: 'main campus',
-    version: 'english',
-    department: 'science',
-    building: 'main building',
-    contactNumber: ''
-  });
-  const [status, setStatus] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [duplicate, setDuplicate] = useState(null);
-
-  function onChange(e) {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
-  }
-
-  async function doSubmit(force = false) {
-    setStatus(null);
-    setLoading(true);
-    try {
-      const ret = await submitRegistration(form, { force });
-      if (ret.conflict) {
-        setDuplicate(ret.existing);
-        setStatus({ type: 'error', message: 'A registration with this code already exists.' });
-      } else {
-        setStatus({ type: 'success', message: 'Registration submitted successfully. Approved: false' });
-        setDuplicate(null);
-        setForm({
-          name: '',
-          code: '',
-          class: '9',
-          section: 'A boys',
-          campus: 'main campus',
-          version: 'english',
-          department: 'science',
-          building: 'main building',
-          contactNumber: ''
-        });
-      }
-    } catch (err) {
-      console.error('Registration error:', err);
-      setStatus({ type: 'error', message: err.message || 'Network or server error' });
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function onSubmit(e) {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.name || !form.code || !form.section || !form.contactNumber || !form.department || !form.building) {
-      setStatus({ type: 'error', message: 'Please fill required fields.' });
+    setStatus(null);
+
+    if (!form.code || !form.contactNumber) {
+      setStatus({ type: 'error', message: 'Please fill in all required fields.' });
       return;
     }
-    await doSubmit(false);
+
+    if (!profile) {
+      setStatus({ type: 'error', message: 'Profile not found. Please complete your profile first.' });
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      if (!token) {
+        setStatus({ type: 'error', message: 'Not authenticated. Please login again.' });
+        setSubmitting(false);
+        return;
+      }
+
+      const registrationData = {
+        name: profile.name,
+        code: form.code.trim(),
+        class: profile.class,
+        section: profile.section,
+        campus: form.campus,
+        version: profile.version,
+        department: profile.department,
+        building: form.building,
+        contactNumber: form.contactNumber.trim()
+      };
+
+      const response = await fetch(`${API_BASE}/api/registration`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(registrationData)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setStatus({ type: 'error', message: data.error || 'Failed to submit registration' });
+        setSubmitting(false);
+        return;
+      }
+
+      setStatus({ type: 'success', message: 'Registration submitted successfully! Your application is pending approval.' });
+      setForm({
+        code: '',
+        building: 'main building',
+        campus: 'main campus',
+        contactNumber: ''
+      });
+
+      // Reload application status
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } catch (err) {
+      console.error('Registration error:', err);
+      setStatus({ type: 'error', message: 'Network error. Please try again.' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Loading state
+  if (loading || authLoading) {
+    return (
+      <div className="card" style={{ maxWidth: 800, margin: '2rem auto' }}>
+        <div className="spinner"></div>
+        <p style={{ textAlign: 'center', marginTop: '1rem' }}>Loading...</p>
+      </div>
+    );
   }
 
-  async function onForceCreate() {
-    await doSubmit(true);
-  }
-
-  // If auth not loaded yet show nothing / loader
-  if (!authLoaded) {
-    return <div className="card" style={{ maxWidth: 900, margin: '20px auto' }}><p>Loading...</p></div>;
-  }
-
-  // If not logged in, show a prompt to log in (hide form)
+  // Not logged in
   if (!user) {
     return (
-      <div className="card form-card" style={{ maxWidth: 700, margin: '20px auto' }}>
-        <h2>Registration Request</h2>
-        <p>You must be logged in to submit a registration request.</p>
-        <div style={{ marginTop: 12 }}>
-          <a className="btn btn-ghost" href="/login">Log in</a>
+      <div className="card" style={{ maxWidth: 800, margin: '2rem auto', textAlign: 'center' }}>
+        <h2>Club Registration</h2>
+        <p style={{ marginTop: '1rem', marginBottom: '2rem' }}>
+          You must be logged in to submit a club registration request.
+        </p>
+        <button className="btn btn-primary" onClick={() => navigate('/login')}>
+          Go to Login
+        </button>
+      </div>
+    );
+  }
+
+  // No profile
+  if (!profile) {
+    return (
+      <div className="card" style={{ maxWidth: 800, margin: '2rem auto', textAlign: 'center' }}>
+        <h2>Profile Required</h2>
+        <p style={{ marginTop: '1rem', marginBottom: '2rem' }}>
+          You need to complete your profile before applying for club membership.
+        </p>
+        <button className="btn btn-primary" onClick={() => navigate('/signup')}>
+          Complete Profile
+        </button>
+      </div>
+    );
+  }
+
+  // Already has pending or approved application
+  if (applicationStatus && !applicationStatus.canApply) {
+    const existingApp = applicationStatus.existingApplication;
+    const isApproved = existingApp.status === 'approved' || existingApp.approved === true;
+    const statusText = isApproved ? 'Approved - Club Member' : 'Pending Review';
+    const statusColor = isApproved ? '#10b981' : '#f59e0b';
+
+    return (
+      <div className="card" style={{ maxWidth: 800, margin: '2rem auto' }}>
+        <h2>{isApproved ? 'Club Membership Status' : 'Application Status'}</h2>
+        
+        <div style={{
+          background: `rgba(${isApproved ? '16, 185, 129' : '245, 158, 11'}, 0.1)`,
+          border: `2px solid ${statusColor}`,
+          borderRadius: '12px',
+          padding: '2rem',
+          marginTop: '2rem',
+          textAlign: 'center'
+        }}>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>
+            {isApproved ? '🎉' : '⏳'}
+          </div>
+          <h3 style={{ color: statusColor, marginBottom: '1rem', fontSize: '1.75rem' }}>
+            {isApproved ? 'You are a Club Member!' : 'Application Pending'}
+          </h3>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', fontSize: '1.1rem' }}>
+            {isApproved 
+              ? 'Congratulations! You are now an official member of the Milestone College Science Club.'
+              : 'Your application is currently under review. Please wait for admin approval.'}
+          </p>
+
+          <div style={{
+            background: 'var(--bg-secondary)',
+            borderRadius: '8px',
+            padding: '1.5rem',
+            textAlign: 'left'
+          }}>
+            <h4 style={{ marginBottom: '1rem', color: 'var(--text-primary)' }}>Application Details:</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+              <div>
+                <strong>Name:</strong> {existingApp.name}
+              </div>
+              <div>
+                <strong>Code:</strong> {existingApp.code}
+              </div>
+              <div>
+                <strong>Class:</strong> {existingApp.class}
+              </div>
+              <div>
+                <strong>Section:</strong> {existingApp.section}
+              </div>
+              <div>
+                <strong>Department:</strong> {existingApp.department.charAt(0).toUpperCase() + existingApp.department.slice(1)}
+              </div>
+              <div>
+                <strong>Version:</strong> {existingApp.version.charAt(0).toUpperCase() + existingApp.version.slice(1)}
+              </div>
+              <div>
+                <strong>Building:</strong> {existingApp.building}
+              </div>
+              <div>
+                <strong>Campus:</strong> {existingApp.campus}
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <strong>Contact:</strong> {existingApp.contactNumber}
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <strong>Submitted:</strong> {new Date(existingApp.createdAt).toLocaleString()}
+              </div>
+            </div>
+          </div>
+
+          <p style={{ marginTop: '2rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+            {isApproved 
+              ? 'Welcome to the club! You now have access to all club activities and resources.'
+              : 'You will be notified once your application is reviewed.'}
+          </p>
+        </div>
+
+        <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+          <button className="btn btn-primary" onClick={() => navigate('/dashboard')}>
+            {isApproved ? 'Go to Dashboard' : 'Back to Dashboard'}
+          </button>
         </div>
       </div>
     );
   }
 
+  // Can apply (no application or declined)
   return (
-    <div className="card form-card">
-      <h2>Registration Request</h2>
+    <div className="card" style={{ maxWidth: 800, margin: '2rem auto' }}>
+      <h2>Club Registration Request</h2>
+      
+      {applicationStatus?.status === 'declined' && (
+        <div className="status warning" style={{ marginTop: '1rem' }}>
+          Your previous application was declined. You can submit a new application.
+        </div>
+      )}
 
-      <form onSubmit={onSubmit} className="form-grid" noValidate>
+      <p style={{ marginTop: '1rem', marginBottom: '2rem', color: 'var(--text-secondary)' }}>
+        Please review your information and complete the registration form.
+      </p>
+
+      <form onSubmit={handleSubmit} className="form-grid">
+        <h3 style={{ gridColumn: '1 / -1', marginTop: '1rem', marginBottom: '0.5rem' }}>
+          Student Information (From Profile)
+        </h3>
+
         <label>
-          Name *
-          <input name="name" value={form.name} onChange={onChange} required />
+          Full Name
+          <input
+            type="text"
+            value={profile.name}
+            readOnly
+            style={{ background: 'var(--bg-tertiary)', cursor: 'not-allowed', opacity: 0.8 }}
+          />
         </label>
 
         <label>
-          Code *
-          <input name="code" value={form.code} onChange={onChange} required />
+          Class
+          <input
+            type="text"
+            value={profile.class}
+            readOnly
+            style={{ background: 'var(--bg-tertiary)', cursor: 'not-allowed', opacity: 0.8 }}
+          />
         </label>
 
         <label>
-          Class *
-          <select name="class" value={form.class} onChange={onChange}>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
-          </select>
+          Section
+          <input
+            type="text"
+            value={profile.section}
+            readOnly
+            style={{ background: 'var(--bg-tertiary)', cursor: 'not-allowed', opacity: 0.8 }}
+          />
         </label>
 
         <label>
-          Department *
-          <select name="department" value={form.department} onChange={onChange}>
-            <option value="science">Science</option>
-            <option value="bst">BST</option>
-            <option value="arts">Arts</option>
-          </select>
+          Department
+          <input
+            type="text"
+            value={profile.department.charAt(0).toUpperCase() + profile.department.slice(1)}
+            readOnly
+            style={{ background: 'var(--bg-tertiary)', cursor: 'not-allowed', opacity: 0.8 }}
+          />
         </label>
 
         <label>
-          Section *
-          <select name="section" value={form.section} onChange={onChange}>
-            {sectionOptions.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
+          Version
+          <input
+            type="text"
+            value={profile.version.charAt(0).toUpperCase() + profile.version.slice(1)}
+            readOnly
+            style={{ background: 'var(--bg-tertiary)', cursor: 'not-allowed', opacity: 0.8 }}
+          />
+        </label>
+
+        <label>
+          WhatsApp Number
+          <input
+            type="text"
+            value={profile.whatsapp}
+            readOnly
+            style={{ background: 'var(--bg-tertiary)', cursor: 'not-allowed', opacity: 0.8 }}
+          />
+        </label>
+
+        <h3 style={{ gridColumn: '1 / -1', marginTop: '1.5rem', marginBottom: '0.5rem' }}>
+          Additional Information
+        </h3>
+
+        <label>
+          Student Code *
+          <input
+            type="text"
+            name="code"
+            value={form.code}
+            onChange={(e) => setForm({ ...form, code: e.target.value })}
+            placeholder="Enter your student code"
+            required
+          />
+        </label>
+
+        <label>
+          Contact Number *
+          <input
+            type="tel"
+            name="contactNumber"
+            value={form.contactNumber}
+            onChange={(e) => setForm({ ...form, contactNumber: e.target.value })}
+            placeholder="Enter contact number"
+            required
+          />
         </label>
 
         <label>
           Campus *
-          <select name="campus" value={form.campus} onChange={onChange}>
+          <select
+            name="campus"
+            value={form.campus}
+            onChange={(e) => setForm({ ...form, campus: e.target.value })}
+          >
             <option value="main campus">Main Campus</option>
             <option value="permanent campus">Permanent Campus</option>
           </select>
         </label>
 
         <label>
-          Version *
-          <select name="version" value={form.version} onChange={onChange}>
-            <option value="english">English</option>
-            <option value="bangla">Bangla</option>
-          </select>
-        </label>
-
-        <label>
           Building *
-          <select name="building" value={form.building} onChange={onChange}>
-            {buildingOptions.map(b => <option key={b} value={b}>{b}</option>)}
+          <select
+            name="building"
+            value={form.building}
+            onChange={(e) => setForm({ ...form, building: e.target.value })}
+          >
+            {buildingOptions.map(b => (
+              <option key={b} value={b}>{b}</option>
+            ))}
           </select>
         </label>
 
-        <label className="full">
-          Contact Number *
-          <input name="contactNumber" value={form.contactNumber} onChange={onChange} required />
-        </label>
-
-        <div className="actions full">
-          <button type="submit" className="btn btn-primary" disabled={loading}>{loading ? 'Submitting...' : 'Submit Registration'}</button>
+        <div className="full" style={{ marginTop: '1rem' }}>
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={submitting}
+            style={{ width: '100%' }}
+          >
+            {submitting ? 'Submitting...' : 'Submit Registration'}
+          </button>
         </div>
       </form>
 
       {status && (
-        <div className={`status ${status.type === 'error' ? 'error' : 'success'}`} style={{ marginTop: 12 }}>
+        <div className={`status ${status.type}`} style={{ marginTop: '1rem' }}>
           {status.message}
         </div>
       )}
 
-      {duplicate && (
-        <div className="card" style={{ marginTop: 14, border: '1px solid #fee2e2' }}>
-          <h3 style={{ marginTop: 0 }}>Code collision — matching registration found</h3>
-          <p style={{ margin: '6px 0' }}>A registration with the same code number already exists. Details:</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            <div><strong>Name:</strong> {duplicate.name}</div>
-            <div><strong>Code:</strong> {duplicate.code}</div>
-            <div><strong>Class:</strong> {duplicate.class}</div>
-            <div><strong>Department:</strong> {duplicate.department}</div>
-            <div><strong>Section:</strong> {duplicate.section}</div>
-            <div><strong>Campus:</strong> {duplicate.campus}</div>
-            <div><strong>Version:</strong> {duplicate.version}</div>
-            <div><strong>Building:</strong> {duplicate.building}</div>
-            <div><strong>Contact:</strong> {duplicate.contactNumber}</div>
-            <div><strong>Approved:</strong> {duplicate.approved ? 'Yes' : 'No'}</div>
-            <div><strong>Submitted At:</strong> {new Date(duplicate.createdAt).toLocaleString()}</div>
-          </div>
-
-          <div style={{ marginTop: 12, display: 'flex', gap: 10 }}>
-            <button className="btn btn-ghost" onClick={() => { setDuplicate(null); setStatus(null); }}>Cancel</button>
-            <button className="btn btn-danger" onClick={onForceCreate}>Create duplicate anyway</button>
-          </div>
-        </div>
-      )}
+      <div style={{
+        marginTop: '2rem',
+        padding: '1rem',
+        background: 'rgba(59, 130, 246, 0.1)',
+        borderRadius: '8px',
+        borderLeft: '4px solid var(--accent-primary)'
+      }}>
+        <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+          <strong>Note:</strong> Your profile information (name, class, section, department, version) cannot be changed here. 
+          If you need to update your profile, please contact an administrator.
+        </p>
+      </div>
     </div>
   );
 };

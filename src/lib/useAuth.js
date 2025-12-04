@@ -3,6 +3,7 @@ import { supabase } from './supabase';
 
 export default function useAuth() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
@@ -14,6 +15,9 @@ export default function useAuth() {
         setUser(data?.user ?? null);
       } catch (err) {
         console.warn('useAuth getUser failed', err);
+        if (mounted) setUser(null);
+      } finally {
+        if (mounted) setLoading(false);
       }
     }
 
@@ -22,6 +26,7 @@ export default function useAuth() {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!mounted) return;
       setUser(session?.user ?? null);
+      setLoading(false);
     });
 
     return () => {
@@ -34,5 +39,5 @@ export default function useAuth() {
     };
   }, []);
 
-  return user;
+  return { user, loading };
 }

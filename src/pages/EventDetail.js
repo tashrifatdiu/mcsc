@@ -1,134 +1,242 @@
-// src/pages/EventDetail.jsx (Final Swipe Gallery – Clean & Perfect)
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Calendar, MapPin } from 'lucide-react';
-import EVENTS from '../data/events';
+import { ChevronLeft, ChevronRight, Calendar, MapPin, X, ZoomIn, ArrowLeft } from 'lucide-react';
 import AOS from 'aos';
+import 'aos/dist/aos.css';
+import './EventDetail.css';
+
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
 
 export default function EventDetail() {
   const { eventId } = useParams();
   const navigate = useNavigate();
-  const event = EVENTS.find(e => e.id === eventId);
-  const [index, setIndex] = useState(0);
+  const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
 
   useEffect(() => {
     AOS.init({ duration: 800 });
+    if (eventId) {
+      fetchEvent();
+    }
+  }, [eventId]);
+
+  useEffect(() => {
     const handleKey = (e) => {
+      if (!isGalleryOpen) return;
       if (e.key === 'ArrowLeft') prevImage();
       if (e.key === 'ArrowRight') nextImage();
+      if (e.key === 'Escape') setIsGalleryOpen(false);
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, []);
+  }, [isGalleryOpen, currentIndex]);
 
-  if (!event) return <div className="min-h-screen bg-black flex-center text-6xl text-white">404</div>;
-
-  const nextImage = () => setIndex((i) => (i + 1) % event.images.length);
-  const prevImage = () => setIndex((i) => (i - 1 + event.images.length) % event.images.length);
-
-  const handleTouchStart = (e) => touchStartX.current = e.touches[0].clientX;
-  const handleTouchEnd = (e) => {
-    const diff = touchStartX.current - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 50) diff > 0 ? nextImage() : prevImage();
+  const fetchEvent = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE}/api/events/${eventId}`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        setEvent(data.event);
+      } else {
+        setError(data.error || 'Event not found');
+      }
+    } catch (err) {
+      console.error('Error fetching event:', err);
+      setError('Failed to load event');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  return (
-    <>
-      {/* Hero */}
-      <div className="relative h-screen overflow-hidden">
-        <img src={`/images/${event.cover}`} className="absolute inset-0 w-full h-full object-cover" alt="" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
-        <div className={`absolute inset-0 bg-gradient-to-br ${event.color} opacity-30`} />
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      day: 'numeric', 
+      month: 'long',
+      year: 'numeric'
+    });
+  };
 
-        <div className="relative h-full flex flex-col justify-end pb-20 px-8 text-center">
-          <div data-aos="fade-up">
-            <h1 className="text-7xl md:text-9xl font-black tracking-tighter text-white drop-shadow-2xl">
-              {event.title}
-            </h1>
-            <p className="text-2xl md:text-4xl mt-4 text-gray-200">{event.short}</p>
-            <div className="mt-8 flex justify-center gap-10 text-gray-300">
-              <span className="flex items-center gap-3"><Calendar size={28} /> {event.date}</span>
-              <span className="flex items-center gap-3"><MapPin size={28} /> {event.location}</span>
-            </div>
+  const nextImage = () => {
+    if (!event?.images) return;
+    setCurrentIndex((i) => (i + 1) % event.images.length);
+  };
+
+  const prevImage = () => {
+    if (!event?.images) return;
+    setCurrentIndex((i) => (i - 1 + event.images.length) % event.images.length);
+  };
+
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e) => {
+    const diffX = touchStartX.current - e.changedTouches[0].clientX;
+    const diffY = touchStartY.current - e.changedTouches[0].clientY;
+    
+    // Only swipe if horizontal movement is greater than vertical
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+      diffX > 0 ? nextImage() : prevImage();
+    }
+  };
+
+  const openGallery = (index) => {
+    setCurrentIndex(index);
+    setIsGalleryOpen(true);
+    document.body.style.overflow = 'hidden';
+  };
+
+  const closeGallery = () => {
+    setIsGalleryOpen(false);
+    document.body.style.overflow = 'auto';
+  };
+
+  if (loading) {
+    return (
+      <div className="event-loading">
+        <div className="loading-content">
+          <div className="logo-container">
+            <img src="/mcsclogo.ico" alt="MCSC Logo" className="loading-logo" />
+            <div className="loading-ring"></div>
           </div>
+          <h2>Loading Event...</h2>
+          <div className="loading-bar">
+            <div className="loading-progress"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-          <button
-            onClick={() => navigate(-1)}
-            className="absolute top-8 left-8 p-3 bg-blue-800 backdrop-blur-xl rounded-full hover:bg-blue-900 transition"
-          >
-            <ChevronLeft size={32} />
+  if (error || !event) {
+    return (
+      <div className="event-error">
+        <div className="error-content">
+          <h1>404</h1>
+          <p>{error || 'Event not found'}</p>
+          <button onClick={() => navigate('/events/past')} className="error-btn">
+            <ArrowLeft size={20} />
+            Back to Events
           </button>
         </div>
       </div>
+    );
+  }
 
-      {/* Full-Screen Swipe Gallery – ONE IMAGE ONLY */}
-      <div className="relative bg-black min-h-screen flex flex-col">
-        {/* Counter */}
-        <div className="fixed top-8 left-1/2 -translate-x-1/2 z-50 bg-black/60 backdrop-blur-xl px-6 py-3 rounded-full border border-white/20">
-          <span className="text-white font-mono text-sm tracking-wider">
-            {(index + 1).toString().padStart(2, '0')} / {event.images.length.toString().padStart(2, '0')}
-          </span>
+  return (
+    <>
+      {/* Hero Section */}
+      <div className="event-hero">
+        <div className="hero-bg">
+          <img src={event.coverImage} alt={event.title} />
+          <div className="hero-overlay"></div>
+          <div className={`hero-gradient ${event.color}`}></div>
         </div>
 
-        {/* Single Image Container */}
-        <div
-          className="flex-1 flex items-center justify-center px-8 py-20 select-none"
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-        >
-          <img
-            key={index}
-            src={event.images[index]}
-            alt={`Image ${index + 1}`}
-            className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl"
-            style={{
-              boxShadow: '0 0 60px rgba(34, 211, 238, 0.35)',
-              animation: 'fadeIn 0.5s ease-out',
-            }}
-          />
+        <button onClick={() => navigate(-1)} className="back-btn">
+          <ArrowLeft size={24} />
+        </button>
 
-          {/* Subtle holographic lines */}
-          <div className="pointer-events-none absolute inset-0 rounded-2xl overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-400/60 to-transparent" />
+        <div className="hero-content" data-aos="fade-up">
+          <h1>{event.title}</h1>
+          <p className="hero-subtitle">{event.shortDescription}</p>
+          <div className="hero-meta">
+            <span className="meta-item">
+              <Calendar size={20} />
+              {formatDate(event.date)}
+            </span>
+            <span className="meta-item">
+              <MapPin size={20} />
+              {event.location}
+            </span>
           </div>
-        </div>
-
-        {/* Your EXACT Styled Navigation Buttons */}
-        <div className="fixed inset-x-0 bottom-10 md:bottom-16 flex justify-center z-50 pointer-events-none">
-          <div className="flex gap-4 bg-black/70 backdrop-blur-2xl rounded-2xl px-6 py-4 border border-white/10 pointer-events-auto">
-            {/* Left Arrow */}
-            <button
-              onClick={prevImage}
-              className="p-5 bg-blue-800 hover:bg-blue-900 rounded-xl transition-all duration-300 hover:scale-110 active:scale-95"
-            >
-              <ChevronLeft size={36} className="text-white" />
-            </button>
-
-            {/* Right Arrow */}
-            <button
-              onClick={nextImage}
-              className="p-5 bg-blue-800 hover:bg-blue-900 rounded-full transition-transform duration-300 hover:scale-125 active:scale-100 shadow-lg"
-            >
-              <ChevronRight size={36} className="text-white" />
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Swipe Hint */}
-        <div className="fixed bottom-32 left-1/2 -translate-x-1/2 text-center md:hidden">
-          <p className="text-gray-500 text-xs font-mono tracking-widest animate-pulse">SWIPE TO NAVIGATE</p>
         </div>
       </div>
 
-      {/* Fade Animation */}
-      <style jsx>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
+      {/* Description Section */}
+      <div className="event-description">
+        <div className="container">
+          <div className="description-card" data-aos="fade-up">
+            <h2>About This Event</h2>
+            <p>{event.description}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Gallery Section */}
+      {event.images && event.images.length > 0 && (
+        <div className="event-gallery-section">
+          <div className="container">
+            <h2 className="gallery-title" data-aos="fade-up">Event Gallery</h2>
+            
+            <div className="gallery-grid">
+              {event.images.map((image, index) => (
+                <div
+                  key={index}
+                  className="gallery-item"
+                  data-aos="zoom-in"
+                  data-aos-delay={index * 50}
+                  onClick={() => openGallery(index)}
+                >
+                  <img src={image} alt={`Gallery ${index + 1}`} />
+                  <div className="gallery-overlay">
+                    <ZoomIn size={40} />
+                    <span className="gallery-number">{index + 1}/{event.images.length}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fullscreen Gallery Modal */}
+      {isGalleryOpen && event.images && (
+        <div className="gallery-modal">
+          <button onClick={closeGallery} className="modal-close">
+            <X size={28} />
+          </button>
+
+          <div className="modal-counter">
+            {String(currentIndex + 1).padStart(2, '0')} / {String(event.images.length).padStart(2, '0')}
+          </div>
+
+          <div
+            className="modal-image-container"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
+            <img
+              key={currentIndex}
+              src={event.images[currentIndex]}
+              alt={`Image ${currentIndex + 1}`}
+              className="modal-image"
+            />
+          </div>
+
+          <div className="modal-nav">
+            <button onClick={prevImage} className="nav-btn nav-prev">
+              <ChevronLeft size={32} />
+            </button>
+            <button onClick={nextImage} className="nav-btn nav-next">
+              <ChevronRight size={32} />
+            </button>
+          </div>
+
+          <div className="swipe-hint">
+            <span>← Swipe →</span>
+          </div>
+        </div>
+      )}
     </>
   );
 }

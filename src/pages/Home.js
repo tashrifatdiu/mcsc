@@ -115,12 +115,28 @@ export default function Home() {
         <main className="home-content">
           <section id="about" ref={refs.current['about']}>
             <About />
+          </section>
+          
+          <section id="team" ref={refs.current['team']}>
             <Team />
+          </section>
+          
+          <section id="highlights" ref={refs.current['highlights']}>
             <Highlights />
+          </section>
+          
+          <section id="journal" ref={refs.current['journal']}>
             <JournalSection />
+          </section>
+          
+          <section id="past" ref={refs.current['past']}>
             <PastCoverage />
+          </section>
+          
+          <section id="events" ref={refs.current['events']}>
             <UpcomingEvents />
           </section>
+          
           <div style={{ height: 60 }} />
         </main>
       </div>

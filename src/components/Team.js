@@ -1,27 +1,88 @@
-import React from 'react';
-import MemberCard from './MemberCard';
+import React, { useEffect, useState } from 'react';
+import './Team.css';
 
-const TEAM = [
-  { name: 'Ayesha Rahman', role: 'President', bio: 'Physics enthusiast & competition lead', image: '/images/team-placeholder-1.svg' },
-  { name: 'Md. Tuhin', role: 'Vice President', bio: 'Robotics and coding mentor', image: '/images/team-placeholder-1.svg' },
-  { name: 'Rima Sultana', role: 'Secretary', bio: 'Science communicator & event coordinator', image: '/images/team-placeholder-1.svg' },
-  { name: 'Arif Khan', role: 'Treasurer', bio: 'Organizes logistics and sponsorships', image: '/images/team-placeholder-1.svg' },
-  { name: 'Sadia Noor', role: 'Journal Editor', bio: 'Leads the club journal and articles', image: '/images/team-placeholder-1.svg' }
-];
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
 
 export default function Team() {
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchCoreMembers();
+  }, []);
+
+  const fetchCoreMembers = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE}/api/core-members`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        setMembers(data.members || []);
+      }
+    } catch (err) {
+      console.error('Error fetching core members:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getInitials = (name) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   return (
-    <div className="home-section" aria-labelledby="team-heading">
+    <div className="home-section team-section" aria-labelledby="team-heading">
       <div className="section-title">
-        <div className="kicker">Team</div>
-        <h2 id="team-heading">Meet our core team</h2>
+        <div className="kicker">Leadership</div>
+        <h2 id="team-heading">Core Team</h2>
       </div>
 
-      <p className="small-muted">A diverse group of students who run workshops, guide projects and manage the club.</p>
+      <p className="team-intro">
+        The guiding force behind Milestone College Science Club's success and vision.
+      </p>
 
-      <div className="team-grid" style={{ marginTop: 14 }}>
-        {TEAM.map(m => <MemberCard key={m.name} {...m} />)}
-      </div>
+      {loading && (
+        <div className="team-loading">
+          <div className="loading-spinner"></div>
+          <p>Loading team members...</p>
+        </div>
+      )}
+
+      {!loading && members.length === 0 && (
+        <div className="team-empty">
+          <p>No team members found.</p>
+        </div>
+      )}
+
+      {!loading && members.length > 0 && (
+        <div className="core-team-grid">
+          {members.map((member) => (
+            <div key={member._id} className="core-member-card">
+              <div className="core-member-image">
+                {member.image ? (
+                  <img src={member.image} alt={member.name} />
+                ) : (
+                  <div className="core-member-placeholder">
+                    <span>{getInitials(member.name)}</span>
+                  </div>
+                )}
+              </div>
+              
+              <div className="core-member-info">
+                <h3 className="core-member-name">{member.name}</h3>
+                <p className="core-member-role">{member.role}</p>
+                <p className="core-member-designation">{member.designation}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

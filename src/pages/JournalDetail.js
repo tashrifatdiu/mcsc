@@ -10,7 +10,7 @@ export default function JournalDetail() {
   const [journal, setJournal] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const user = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {

@@ -93,7 +93,7 @@ const ALL_PRODUCTS = {
 };
 
 export default function Merchandise() {
-  const user = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);

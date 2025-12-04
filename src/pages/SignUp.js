@@ -60,7 +60,7 @@ const sectionOptions = generateSectionOptions();
 
 export default function SignUp() {
   const navigate = useNavigate();
-  const user = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -80,10 +80,20 @@ export default function SignUp() {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (user) {
+    if (!authLoading && user) {
       navigate('/dashboard');
     }
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
+
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="card form-card" style={{ maxWidth: 720, margin: '20px auto', textAlign: 'center' }}>
+        <div className="spinner"></div>
+        <p style={{ marginTop: '1rem' }}>Loading...</p>
+      </div>
+    );
+  }
 
   function onChange(e) {
     const { name, value } = e.target;

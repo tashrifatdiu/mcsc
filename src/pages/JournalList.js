@@ -7,7 +7,7 @@ import useAuth from '../lib/useAuth';
 export default function JournalList() {
   const [journals, setJournals] = useState([]);
   const [loading, setLoading] = useState(true);
-  const user = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
     (async () => {

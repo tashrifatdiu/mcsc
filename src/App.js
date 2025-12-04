@@ -1,4 +1,6 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from './context/ThemeContext';
+import ScrollToTop from './components/ScrollToTop';
 import NavBar from './components/NavBar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -29,7 +31,8 @@ import Merchandise from './pages/Merchandise';
 
 function App() {
   return (
-    <>
+    <ThemeProvider>
+      <ScrollToTop />
       <div className="scanlines"></div>
       <NavBar />
       <main className="app-main">
@@ -64,7 +67,7 @@ function App() {
         </Routes>
       </main>
       <Footer />
-    </>
+    </ThemeProvider>
   );
 }
 

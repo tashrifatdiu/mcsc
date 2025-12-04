@@ -11,7 +11,7 @@ function validateEmail(email) {
 
 export default function Login() {
   const navigate = useNavigate();
-  const user = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [form, setForm] = useState({ email: '', password: '', remember: false });
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState(null); // { type: 'error'|'success', message }
@@ -19,10 +19,20 @@ export default function Login() {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (user) {
+    if (!authLoading && user) {
       navigate('/dashboard');
     }
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
+
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="card form-card" style={{ maxWidth: 600, margin: '20px auto', textAlign: 'center' }}>
+        <div className="spinner"></div>
+        <p style={{ marginTop: '1rem' }}>Loading...</p>
+      </div>
+    );
+  }
 
   function onChange(e) {
     const { name, value, type, checked } = e.target;

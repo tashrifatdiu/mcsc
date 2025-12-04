@@ -10,8 +10,8 @@ export const EDITOR_TOOLS = {
     { name: 'h1', icon: 'H1', tooltip: 'Heading 1' },
     { name: 'h2', icon: 'H2', tooltip: 'Heading 2' },
     { name: 'h3', icon: 'H3', tooltip: 'Heading 3' },
-    { name: 'quote', icon: '"', tooltip: 'Quote' },
-    { name: 'code', icon: '</>', tooltip: 'Code Block' },
+    { name: 'paragraph', icon: 'P', tooltip: 'Normal Paragraph' },
+    { name: 'divider', icon: '—', tooltip: 'Horizontal Line' },
   ],
 
   lists: [
@@ -41,9 +41,8 @@ export const EDITOR_SHORTCUTS = {
   'mod+i': 'italic',
   'mod+u': 'underline',
   'mod+k': 'link',
-  'mod+shift+c': 'code',
-  'mod+shift+.': 'quote',
   'mod+shift+l': 'latex',
+  'mod+shift+d': 'divider',
   'tab': 'indent',
   'shift+tab': 'outdent'
 };

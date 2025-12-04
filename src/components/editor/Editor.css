@@ -247,20 +247,16 @@
   margin: 1em 0;
 }
 
-.editor-content blockquote {
-  border-left: 3px solid var(--primary);
-  margin: 1em 0;
-  padding: 0.5em 0 0.5em 1em;
-  background: #f7f7f9;
-  border-radius: 0 6px 6px 0;
+.editor-content hr {
+  border: none;
+  border-top: 2px solid #e5e7eb;
+  margin: 2rem 0;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
 }
 
-.editor-content pre {
-  background: #f3f4f6;
-  padding: 1em;
-  border-radius: 8px;
-  overflow-x: auto;
-  font-family: 'Space Mono', monospace;
+.editor-content hr:hover {
+  opacity: 1;
 }
 
 /* Responsive tweaks for small screens */

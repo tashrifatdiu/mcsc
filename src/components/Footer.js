@@ -4,7 +4,16 @@ const styles = `
   .footer {
     position: relative;
     overflow: hidden;
+    background: var(--bg-secondary);
+    transition: background 0.3s ease;
+  }
+
+  [data-theme="dark"] .footer {
     background: linear-gradient(to right, #020617, #0f172a, #020617);
+  }
+
+  [data-theme="light"] .footer {
+    background: linear-gradient(to right, #f8fafc, #ffffff, #f8fafc);
   }
 
   .background-glow {
@@ -80,7 +89,7 @@ const styles = `
   .footer-section h3 {
     font-size: 18px;
     font-weight: bold;
-    background: linear-gradient(to right, #22d3ee, #60a5fa);
+    background: linear-gradient(to right, var(--accent-info), var(--accent-primary));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -123,16 +132,16 @@ const styles = `
     gap: 12px;
     padding: 12px;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--bg-card);
+    border: 1px solid var(--border-medium);
     text-decoration: none;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--text-secondary);
     transition: all 0.3s ease;
     font-size: 14px;
   }
 
   .contact-link:hover {
-    color: white;
+    color: var(--text-primary);
   }
 
   .instagram-link:hover {
@@ -181,9 +190,50 @@ const styles = `
   }
 
   .about-section p {
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-secondary);
     line-height: 1.6;
     font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  .footer-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 20px;
+  }
+
+  .footer-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-medium);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+  }
+
+  .footer-stat:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent-primary);
+  }
+
+  .footer-stat strong {
+    font-size: 24px;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .footer-stat span {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
   }
 
   .brand-section {
@@ -199,14 +249,14 @@ const styles = `
   }
 
   .brand-inner {
-    background: #0f172a;
+    background: var(--bg-primary);
     padding: 8px 16px;
     border-radius: 6px;
   }
 
   .brand-inner p:first-child {
     font-size: 12px;
-    background: linear-gradient(to right, #22d3ee, #60a5fa);
+    background: linear-gradient(to right, var(--accent-info), var(--accent-primary));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -215,7 +265,7 @@ const styles = `
   .brand-inner p:last-child {
     font-size: 18px;
     font-weight: bold;
-    color: white;
+    color: var(--text-primary);
   }
 
   .divider {
@@ -230,7 +280,7 @@ const styles = `
     gap: 16px;
     text-align: center;
     font-size: 12px;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--text-muted);
   }
 
   @media (min-width: 768px) {
@@ -258,13 +308,13 @@ const styles = `
   }
 
   .footer-links a {
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--text-muted);
     text-decoration: none;
     transition: color 0.3s ease;
   }
 
   .footer-links a:hover {
-    color: #22d3ee;
+    color: var(--accent-info);
   }
 
   .footer-glow {
@@ -281,7 +331,7 @@ const styles = `
   .privacy-terms {
     margin-top: 16px;
     font-size: 12px;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--text-secondary);
   }
 
   .privacy-terms p {
@@ -342,7 +392,17 @@ export default function Footer() {
                 <span className="dot"></span>
                 About
               </h3>
-              <p>Science Club at Milestone College - fostering curiosity, innovation, and discovery through collaborative scientific exploration.</p>
+              <p>Science Club at Milestone College - fostering curiosity, innovation, and discovery since 2010.</p>
+              <div className="footer-stats">
+                <div className="footer-stat">
+                  <strong>1000+</strong>
+                  <span>Active Members</span>
+                </div>
+                <div className="footer-stat">
+                  <strong>6000+</strong>
+                  <span>Alumni Worldwide</span>
+                </div>
+              </div>
             </div>
 
             {/* Brand Section */}

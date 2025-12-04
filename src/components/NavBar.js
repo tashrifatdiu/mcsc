@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import ThemeToggle from './ThemeToggle';
 import logo from './mcsclogo.png';
 import './NavBar.css';
 
@@ -109,17 +110,20 @@ const NavBar = () => {
         <img src={logo} alt="Club Logo" />
       </Link>
 
-      {/* Mobile Menu Toggle */}
-      <button
-        className={`hamburger ${menuOpen ? 'active' : ''}`}
-        aria-label="Toggle menu"
-        aria-expanded={menuOpen}
-        onClick={() => setMenuOpen(!menuOpen)}
-      >
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
+      {/* Theme Toggle & Mobile Menu Toggle */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <ThemeToggle />
+        <button
+          className={`hamburger ${menuOpen ? 'active' : ''}`}
+          aria-label="Toggle menu"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
 
       {/* Navigation Links */}
       <div className={`nav-menu ${menuOpen ? 'active' : ''}`}>
