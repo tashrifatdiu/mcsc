@@ -1,8 +1,16 @@
 /* Past Events Page Specific Styles */
 
+.events-page {
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
+}
+
 .event-card-wrapper {
   position: relative;
   cursor: pointer;
+  width: 100%;
+  max-width: 100%;
 }
 
 .event-card-3d {
@@ -240,8 +248,17 @@
   }
 
   /* Disable 3D effect on mobile */
+  .event-card-3d {
+    transform: none !important;
+  }
+  
   .event-card-wrapper:hover .event-card-3d {
-    transform: none;
+    transform: none !important;
+  }
+  
+  /* Prevent transform issues */
+  .event-card-wrapper {
+    transform: none !important;
   }
 }
 

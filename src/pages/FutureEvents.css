@@ -3,6 +3,8 @@
 .future-event-card-wrapper {
   position: relative;
   cursor: pointer;
+  width: 100%;
+  max-width: 100%;
 }
 
 .future-event-card-3d {
@@ -230,8 +232,17 @@
   }
 
   /* Disable 3D effect on mobile */
+  .future-event-card-3d {
+    transform: none !important;
+  }
+  
   .future-event-card-wrapper:hover .future-event-card-3d {
-    transform: none;
+    transform: none !important;
+  }
+  
+  /* Prevent transform issues */
+  .future-event-card-wrapper {
+    transform: none !important;
   }
 }
 

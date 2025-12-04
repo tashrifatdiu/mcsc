@@ -30,6 +30,8 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 4rem 1.5rem;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 /* Header */
@@ -56,6 +58,8 @@
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 2rem;
   margin-bottom: 3rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 /* Event Card */
@@ -85,16 +89,26 @@
 }
 
 @media (max-width: 768px) {
+  .events-page {
+    overflow-x: hidden !important;
+    width: 100vw;
+    max-width: 100vw;
+  }
+
   .events-container {
     padding: 2.5rem 1rem;
+    overflow-x: hidden;
+    width: 100%;
   }
 
   .events-header {
     margin-bottom: 3rem;
+    overflow-x: hidden;
   }
 
   .events-header h1 {
     font-size: 2.5rem;
+    word-wrap: break-word;
   }
 
   .events-header p {
@@ -104,6 +118,7 @@
   .events-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
+    width: 100%;
   }
 }
 
@@ -306,4 +321,31 @@
 
 .to-purple-500 {
   --tw-gradient-to: #a855f7;
+}
+
+
+/* Mobile Scroll Fix - Prevent Jitter */
+@media (max-width: 768px) {
+  /* Hide floating background particles on mobile */
+  .fixed.inset-0.pointer-events-none {
+    display: none !important;
+  }
+  
+  /* Prevent horizontal overflow */
+  .events-page,
+  .events-container,
+  .events-grid,
+  .event-card-wrapper,
+  .future-event-card-wrapper {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
+  
+  /* Disable transforms that cause jitter */
+  * {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
 }

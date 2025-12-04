@@ -101,11 +101,17 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
-/* Disable smooth scroll on route changes */
+/* Disable smooth scroll and animations on route changes */
 html.route-changing {
-  scroll-behavior: auto;
+  scroll-behavior: auto !important;
+}
+
+html.route-changing * {
+  animation-duration: 0s !important;
+  transition-duration: 0s !important;
 }
 
 body {
@@ -117,12 +123,42 @@ body {
   background-attachment: fixed;
   min-height: 100vh;
   transition: background 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent horizontal scroll on all elements */
+* {
+  max-width: 100%;
+}
+
+/* Fix for mobile viewport */
+@media (max-width: 768px) {
+  html {
+    overflow-x: hidden;
+    position: relative;
+  }
+  
+  body {
+    overflow-x: hidden;
+    position: relative;
+    width: 100%;
+  }
 }
 
 #root {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
+}
+
+/* Prevent layout shift during route changes */
+.route-changing #root {
+  overflow: hidden;
+  height: 100vh;
 }
 
 /* Typography */

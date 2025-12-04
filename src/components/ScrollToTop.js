@@ -5,18 +5,23 @@ export default function ScrollToTop() {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    // Add class to disable smooth scroll temporarily
+    // Disable smooth scroll and animations during route change
     document.documentElement.classList.add('route-changing');
+    document.body.style.overflow = 'hidden';
     
-    // Scroll to top instantly
+    // Force immediate scroll to top
     window.scrollTo(0, 0);
     
-    // Remove class after a short delay to re-enable smooth scroll
+    // Re-enable after a short delay
     const timer = setTimeout(() => {
       document.documentElement.classList.remove('route-changing');
-    }, 100);
+      document.body.style.overflow = '';
+    }, 150);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      document.body.style.overflow = '';
+    };
   }, [pathname]);
 
   return null;
