@@ -51,22 +51,15 @@ export default function EventDetailNew() {
   };
 
   const openLightbox = (index) => {
-    console.log('Opening lightbox with index:', index);
-    console.log('Image URL:', event?.images?.[index]);
     setSelectedImage(index);
-    const scrollY = window.scrollY;
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = '100%';
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
   };
 
   const closeLightbox = () => {
-    const scrollY = document.body.style.top;
-    document.body.style.position = '';
-    document.body.style.top = '';
-    document.body.style.width = '';
-    window.scrollTo(0, parseInt(scrollY || '0') * -1);
     setSelectedImage(null);
+    document.body.style.overflow = '';
+    document.body.style.touchAction = '';
   };
 
   const nextImage = () => {
@@ -119,6 +112,14 @@ export default function EventDetailNew() {
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [selectedImage, event]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, []);
 
   if (loading) {
     return (
