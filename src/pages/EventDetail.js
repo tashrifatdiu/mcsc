@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Calendar, MapPin, X, ZoomIn, ArrowLeft } from 'lucide-react';
 import AOS from 'aos';
@@ -15,18 +15,31 @@ export default function EventDetail() {
   const [error, setError] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [showAllImages, setShowAllImages] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
 
   useEffect(() => {
+    // Handle window resize
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    // Disable AOS on mobile for better performance
     AOS.init({ 
-      duration: 600,
+      duration: isMobile ? 0 : 600,
       once: true,
       offset: 50,
       delay: 0,
-      easing: 'ease-out'
+      easing: 'ease-out',
+      disable: isMobile
     });
-  }, []);
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isMobile]);
 
   useEffect(() => {
     if (eventId) {
@@ -195,22 +208,42 @@ export default function EventDetail() {
             <h2 className="gallery-title" data-aos="fade-up">Event Gallery</h2>
             
             <div className="gallery-grid">
-              {event.images.map((image, index) => (
-                <div
-                  key={index}
-                  className="gallery-item"
-                  data-aos="zoom-in"
-                  data-aos-delay={index * 50}
-                  onClick={() => openGallery(index)}
-                >
-                  <img src={image} alt={`Gallery ${index + 1}`} />
-                  <div className="gallery-overlay">
-                    <ZoomIn size={40} />
-                    <span className="gallery-number">{index + 1}/{event.images.length}</span>
+              {event.images.map((image, index) => {
+                // On mobile, only show first 6 images unless "Load More" is clicked
+                if (isMobile && !showAllImages && index >= 6) return null;
+                
+                return (
+                  <div
+                    key={index}
+                    className="gallery-item"
+                    data-aos={index < 6 ? "zoom-in" : ""}
+                    data-aos-delay={index < 6 ? index * 50 : 0}
+                    onClick={() => openGallery(index)}
+                  >
+                    <img 
+                      src={image} 
+                      alt={`Gallery ${index + 1}`}
+                      loading="lazy"
+                    />
+                    <div className="gallery-overlay">
+                      <ZoomIn size={40} />
+                      <span className="gallery-number">{index + 1}/{event.images.length}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
+
+            {isMobile && !showAllImages && event.images.length > 6 && (
+              <div className="load-more-container">
+                <button 
+                  onClick={() => setShowAllImages(true)} 
+                  className="btn btn-primary load-more-btn"
+                >
+                  Load More Images ({event.images.length - 6} remaining)
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
