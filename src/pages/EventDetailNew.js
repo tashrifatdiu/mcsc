@@ -52,14 +52,16 @@ export default function EventDetailNew() {
 
   const openLightbox = (index) => {
     setSelectedImage(index);
+    // Prevent body scroll
+    document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
-    document.body.style.touchAction = 'none';
   };
 
   const closeLightbox = () => {
     setSelectedImage(null);
+    // Re-enable body scroll
+    document.documentElement.style.overflow = '';
     document.body.style.overflow = '';
-    document.body.style.touchAction = '';
   };
 
   const nextImage = () => {
@@ -116,8 +118,8 @@ export default function EventDetailNew() {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      document.documentElement.style.overflow = '';
       document.body.style.overflow = '';
-      document.body.style.touchAction = '';
     };
   }, []);
 
