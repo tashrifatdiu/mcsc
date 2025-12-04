@@ -6,7 +6,12 @@ export default function ImageLightbox({ images, currentIndex, onClose, onNext, o
   useEffect(() => {
     // Prevent body scroll
     const originalOverflow = document.body.style.overflow;
+    const originalPosition = document.body.style.position;
+    const originalHeight = document.body.style.height;
+    
     document.body.style.overflow = 'hidden';
+    document.body.style.position = 'relative';
+    document.body.style.height = '100%';
 
     // Keyboard navigation
     const handleKeyDown = (e) => {
@@ -19,6 +24,8 @@ export default function ImageLightbox({ images, currentIndex, onClose, onNext, o
 
     return () => {
       document.body.style.overflow = originalOverflow;
+      document.body.style.position = originalPosition;
+      document.body.style.height = originalHeight;
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [onClose, onNext, onPrev]);
@@ -43,6 +50,20 @@ export default function ImageLightbox({ images, currentIndex, onClose, onNext, o
     }
   };
 
+  const handleContentClick = (e) => {
+    e.stopPropagation();
+  };
+
+  const handleContentTouchStart = (e) => {
+    e.stopPropagation();
+    handleTouchStart(e);
+  };
+
+  const handleContentTouchEnd = (e) => {
+    e.stopPropagation();
+    handleTouchEnd(e);
+  };
+
   return (
     <div className="image-lightbox-overlay" onClick={onClose}>
       <button className="lightbox-btn-close" onClick={onClose}>
@@ -55,14 +76,15 @@ export default function ImageLightbox({ images, currentIndex, onClose, onNext, o
 
       <div 
         className="lightbox-content"
-        onClick={(e) => e.stopPropagation()}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
+        onClick={handleContentClick}
+        onTouchStart={handleContentTouchStart}
+        onTouchEnd={handleContentTouchEnd}
       >
         <img 
           src={images[currentIndex]} 
           alt={`Image ${currentIndex + 1}`}
           className="lightbox-image"
+          draggable="false"
         />
       </div>
 
