@@ -13,6 +13,8 @@ export default function EventDetailNew() {
   const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [visibleImages, setVisibleImages] = useState(6);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
 
   useEffect(() => {
     if (eventId) {
@@ -69,6 +71,45 @@ export default function EventDetailNew() {
       setSelectedImage((prev) => (prev - 1 + event.images.length) % event.images.length);
     }
   };
+
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      nextImage();
+    }
+    if (isRightSwipe) {
+      prevImage();
+    }
+
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
+
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (selectedImage === null) return;
+      
+      if (e.key === 'ArrowLeft') prevImage();
+      if (e.key === 'ArrowRight') nextImage();
+      if (e.key === 'Escape') closeLightbox();
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [selectedImage, event]);
 
   if (loading) {
     return (
@@ -163,13 +204,17 @@ export default function EventDetailNew() {
             <ChevronRight size={32} />
           </button>
           <div className="lightbox-counter">
-            {selectedImage + 1} / {event.images.length}
+            {String(selectedImage + 1).padStart(2, '0')} / {String(event.images.length).padStart(2, '0')}
           </div>
           <img 
             src={event.images[selectedImage]} 
             alt={`Photo ${selectedImage + 1}`}
             onClick={(e) => e.stopPropagation()}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
           />
+          <div className="swipe-hint">← Swipe →</div>
         </div>
       )}
     </div>
