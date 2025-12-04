@@ -35,8 +35,8 @@
 }
 
 .lightbox-image {
-  max-width: 90%;
-  max-height: 80vh;
+  max-width: 95%;
+  max-height: 100%;
   width: auto;
   height: auto;
   object-fit: contain;
@@ -161,13 +161,12 @@
 
 @media (max-width: 768px) {
   .lightbox-content {
-    padding: 2rem 0.75rem;
-    padding-bottom: 6rem;           /* much tighter */
+    padding: 3rem 0.5rem 5.5rem;
   }
 
   .lightbox-image {
-    max-width: 95%;
-    max-height: 76vh;
+    max-width: 98%;
+    max-height: 100%;
     border-radius: 8px;
   }
 
@@ -203,12 +202,12 @@
 
 @media (max-width: 480px) {
   .lightbox-content {
-    padding: 1.5rem 0.5rem;
-    padding-bottom: 5rem;           /* perfect on small phones */
+    padding: 3rem 0.5rem 5rem;
   }
 
   .lightbox-image {
-    max-height: 72vh;
+    max-width: 98%;
+    max-height: 100%;
   }
 
   .lightbox-btn-close {
