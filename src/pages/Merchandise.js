@@ -3,6 +3,7 @@ import { ShoppingCart, Plus, Minus, Trash2, Package, X, LogIn } from 'lucide-rea
 import { supabase } from '../lib/supabase';
 import useAuth from '../lib/useAuth';
 import { useNavigate } from 'react-router-dom';
+import JacketPreBookModal from '../components/JacketPreBookModal';
 import './Merchandise.css';
 
 // Import images
@@ -10,8 +11,6 @@ import jacketEnglishFront from './images/clubJacketEnglishVersionFront.jpg';
 import jacketEnglishBack from './images/clubJacketEnglishVersionBack.jpg';
 import jacketBanglaFront from './images/clubJacketBanglaVersionFront.jpg';
 import jacketBanglaBack from './images/clubJacketBanglaVersionBack.jpg';
-import mufflerEnglish from './images/MufflerEnglishVersion.png';
-import mufflerBangla from './images/MufflerBanglaVersion.png';
 import nameplateEnglish from './images/clubNamePlateEnglishVersion.png';
 import nameplateBangla from './images/clubNamePlateBanglaVersion.png';
 import cortPin from './images/cort pin.png';
@@ -21,26 +20,18 @@ const ALL_PRODUCTS = {
     {
       id: 'club-jacket-english',
       name: 'Club Jacket (English Version)',
-      price: 1500,
+      price: 950,
       image: jacketEnglishFront,
       imageBack: jacketEnglishBack,
       description: 'Premium quality club jacket with embroidered logo - English Version',
+      gift: '🎁 FREE: 1 Nameplate + 1 Cort Pic included',
       sizes: ['S', 'M', 'L', 'XL', 'XXL'],
-      version: 'english'
-    },
-    {
-      id: 'club-muffler-english',
-      name: 'Club Muffler (English Version)',
-      price: 300,
-      image: mufflerEnglish,
-      description: 'Warm and comfortable club muffler - English Version',
-      sizes: ['One Size'],
       version: 'english'
     },
     {
       id: 'club-nameplate-english',
       name: 'Club Nameplate (English Version)',
-      price: 200,
+      price: 150,
       image: nameplateEnglish,
       description: 'Personalized club nameplate - English Version',
       sizes: ['One Size'],
@@ -51,26 +42,18 @@ const ALL_PRODUCTS = {
     {
       id: 'club-jacket-bangla',
       name: 'ক্লাব জ্যাকেট (বাংলা ভার্সন)',
-      price: 1500,
+      price: 950,
       image: jacketBanglaFront,
       imageBack: jacketBanglaBack,
       description: 'প্রিমিয়াম মানের ক্লাব জ্যাকেট এমব্রয়ডারি লোগো সহ - বাংলা ভার্সন',
+      gift: '🎁 ফ্রি: ১টি নেমপ্লেট + ১টি কর্ট পিক অন্তর্ভুক্ত',
       sizes: ['S', 'M', 'L', 'XL', 'XXL'],
-      version: 'bangla'
-    },
-    {
-      id: 'club-muffler-bangla',
-      name: 'ক্লাব মাফলার (বাংলা ভার্সন)',
-      price: 300,
-      image: mufflerBangla,
-      description: 'উষ্ণ এবং আরামদায়ক ক্লাব মাফলার - বাংলা ভার্সন',
-      sizes: ['One Size'],
       version: 'bangla'
     },
     {
       id: 'club-nameplate-bangla',
       name: 'ক্লাব নেমপ্লেট (বাংলা ভার্সন)',
-      price: 200,
+      price: 150,
       image: nameplateBangla,
       description: 'ব্যক্তিগতকৃত ক্লাব নেমপ্লেট - বাংলা ভার্সন',
       sizes: ['One Size'],
@@ -82,7 +65,7 @@ const ALL_PRODUCTS = {
       id: 'club-cort-pic',
       name: 'Club Cort Pic',
       nameBangla: 'ক্লাব কর্ট পিক',
-      price: 150,
+      price: 100,
       image: cortPin,
       description: 'Official club cort pic badge - Universal for all versions',
       descriptionBangla: 'অফিশিয়াল ক্লাব কর্ট পিক ব্যাজ - সকল ভার্সনের জন্য',
@@ -98,6 +81,7 @@ export default function Merchandise() {
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
   const [profile, setProfile] = useState(null);
+  const [preBookJacket, setPreBookJacket] = useState(null);
   const [products, setProducts] = useState([]);
   const [orderForm, setOrderForm] = useState({
     name: '',
@@ -321,6 +305,8 @@ export default function Merchandise() {
                 key={product.id} 
                 product={product} 
                 onAddToCart={addToCart}
+                onPreBook={(jacket) => setPreBookJacket(jacket)}
+                user={user}
                 userVersion={profile?.version}
               />
             ))
@@ -531,12 +517,23 @@ export default function Merchandise() {
             )}
           </div>
         )}
+        {preBookJacket && (
+          <JacketPreBookModal
+            jacket={preBookJacket}
+            user={user}
+            profile={profile}
+            onClose={() => setPreBookJacket(null)}
+            onSuccess={() => {
+              setMessage({ type: 'success', text: 'Pre-order submitted successfully!' });
+            }}
+          />
+        )}
       </div>
     </div>
   );
 }
 
-function ProductCard({ product, onAddToCart, userVersion }) {
+function ProductCard({ product, onAddToCart, onPreBook, user, userVersion }) {
   const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
   const [showBackImage, setShowBackImage] = useState(false);
   
@@ -547,6 +544,11 @@ function ProductCard({ product, onAddToCart, userVersion }) {
   const displayDescription = userVersion === 'bangla' && product.descriptionBangla 
     ? product.descriptionBangla 
     : product.description;
+
+  // Import gift images for display
+  const nameplateEnglish = require('./images/clubNamePlateEnglishVersion.png');
+  const nameplateBangla = require('./images/clubNamePlateBanglaVersion.png');
+  const cortPin = require('./images/cort pin.png');
 
   return (
     <div className="product-card">
@@ -564,10 +566,27 @@ function ProductCard({ product, onAddToCart, userVersion }) {
             {showBackImage ? 'Front' : 'Hover for back view'}
           </span>
         )}
+        
+        {/* Gift badges for jacket */}
+        {product.gift && (
+          <div className="gift-badges">
+            <div className="gift-badge gift-badge-1">
+              <img src={userVersion === 'bangla' ? nameplateBangla : nameplateEnglish} alt="Free Nameplate" />
+              <span className="gift-label">FREE</span>
+            </div>
+            <div className="gift-badge gift-badge-2">
+              <img src={cortPin} alt="Free Pin" />
+              <span className="gift-label">FREE</span>
+            </div>
+          </div>
+        )}
       </div>
       <div className="product-info">
         <h3>{displayName}</h3>
         <p className="product-description">{displayDescription}</p>
+        {product.gift && (
+          <p className="product-gift">{product.gift}</p>
+        )}
         <p className="product-price">৳{product.price}</p>
         
         {product.version && (
@@ -588,13 +607,23 @@ function ProductCard({ product, onAddToCart, userVersion }) {
           </select>
         </div>
         
-        <button 
-          className="add-to-cart-btn"
-          onClick={() => onAddToCart(product, selectedSize)}
-        >
-          <Plus size={18} />
-          {userVersion === 'bangla' ? 'কার্টে যোগ করুন' : 'Add to Cart'}
-        </button>
+        {/* Show Pre-Book button for jackets, Add to Cart for others */}
+        {product.id.includes('jacket') ? (
+          <button 
+            className="prebook-btn"
+            onClick={() => user ? onPreBook(product) : alert('Please login to pre-book')}
+          >
+            {userVersion === 'bangla' ? 'প্রি-বুক করুন' : 'Pre-Book Now'}
+          </button>
+        ) : (
+          <button 
+            className="add-to-cart-btn"
+            onClick={() => onAddToCart(product, selectedSize)}
+          >
+            <Plus size={18} />
+            {userVersion === 'bangla' ? 'কার্টে যোগ করুন' : 'Add to Cart'}
+          </button>
+        )}
       </div>
     </div>
   );
