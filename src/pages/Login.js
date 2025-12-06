@@ -170,19 +170,19 @@ export default function Login() {
         </label>
 
         <label style={{ alignItems: 'center', display: 'flex', gap: 8 }}>
-          <input
+          {/* <input
             name="remember"
             type="checkbox"
             checked={form.remember}
             onChange={onChange}
             style={{ margin: 0 }}
-          />
-          <span style={{ fontSize: 14, color: '#475569' }}>Remember me</span>
+          /> */}
+          {/* <span style={{ fontSize: 14, color: '#475569' }}>Remember me</span> */}
         </label>
 
         <div className="full" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Link to="/signup" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: 14 }}>Create account</Link>
-          <Link to="#" style={{ color: '#64748b', textDecoration: 'none', fontSize: 14 }}>Forgot password?</Link>
+          <Link to="/signup" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: 24 }}>Create an account?</Link>
+          {/* <Link to="#" style={{ color: '#64748b', textDecoration: 'none', fontSize: 14 }}>Forgot password?</Link> */}
         </div>
 
         <div className="actions full" style={{ marginTop: 8 }}>
