@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import useAuth from '../lib/useAuth';
 import { useNavigate } from 'react-router-dom';
 import JacketPreBookModal from '../components/JacketPreBookModal';
+
 import './Merchandise.css';
 
 // Import images
@@ -87,15 +88,17 @@ const ALL_PRODUCTS = {
 export default function Merchandise() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
   const [profile, setProfile] = useState(null);
   const [preBookJacket, setPreBookJacket] = useState(null);
   const [preBookSize, setPreBookSize] = useState(null);
-  const [products, setProducts] = useState([]);
+  // Initialize with all products so guests can see them immediately
+  const [products, setProducts] = useState([...ALL_PRODUCTS.english, ...ALL_PRODUCTS.bangla, ...ALL_PRODUCTS.universal]);
   const [orderHistory, setOrderHistory] = useState([]);
   const [showOrderHistory, setShowOrderHistory] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [orderForm, setOrderForm] = useState({
     name: '',
     email: '',
@@ -110,7 +113,7 @@ export default function Merchandise() {
     let mounted = true;
 
     async function loadProfile() {
-      setLoading(true);
+      // Don't show loading since products are already visible
       
       if (user && user.id) {
         try {
@@ -147,8 +150,6 @@ export default function Merchandise() {
           console.warn('Failed to load profile', err);
           // Default to all products if profile fetch fails
           setProducts([...ALL_PRODUCTS.english, ...ALL_PRODUCTS.universal]);
-        } finally {
-          if (mounted) setLoading(false);
         }
       } else if (user) {
         // User logged in but no profile - show all products
@@ -158,12 +159,8 @@ export default function Merchandise() {
           name: user.user_metadata?.full_name || '',
           email: user.email || ''
         }));
-        setLoading(false);
-      } else if (!authLoading) {
-        // Guest user - show all products (only after auth check is complete)
-        setProducts([...ALL_PRODUCTS.english, ...ALL_PRODUCTS.bangla, ...ALL_PRODUCTS.universal]);
-        setLoading(false);
       }
+      // Guest users already have products from initial state
     }
 
     loadProfile();
@@ -171,7 +168,7 @@ export default function Merchandise() {
     return () => {
       mounted = false;
     };
-  }, [user]);
+  }, [user, authLoading]);
 
   const addToCart = (product, size) => {
     const existingItem = cart.find(item => item.id === product.id && item.size === size);
@@ -365,6 +362,9 @@ export default function Merchandise() {
                 onPreBook={(jacket, size) => {
                   setPreBookJacket(jacket);
                   setPreBookSize(size);
+                }}
+                onShowCart={() => {
+                  warning('Please login to pre-book jackets');
                 }}
                 user={user}
                 userVersion={profile?.version}
@@ -665,9 +665,10 @@ export default function Merchandise() {
   );
 }
 
-function ProductCard({ product, onAddToCart, onPreBook, user, userVersion }) {
+function ProductCard({ product, onAddToCart, onPreBook, onShowCart, user, userVersion }) {
   const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
   const [showBackImage, setShowBackImage] = useState(false);
+  const [showLoginNotice, setShowLoginNotice] = useState(false);
   
   const displayName = userVersion === 'bangla' && product.nameBangla 
     ? product.nameBangla 
@@ -776,18 +777,43 @@ function ProductCard({ product, onAddToCart, onPreBook, user, userVersion }) {
           </button>
         ) : product.id.includes('jacket') ? (
           <button 
-            className="prebook-btn"
-            onClick={() => user ? onPreBook(product, selectedSize) : alert('Please login to pre-book')}
+            className={`prebook-btn ${showLoginNotice ? 'login-notice' : ''}`}
+            onClick={() => {
+              if (user) {
+                onPreBook(product, selectedSize);
+              } else {
+                setShowLoginNotice(true);
+                setTimeout(() => setShowLoginNotice(false), 2000);
+              }
+            }}
+            disabled={showLoginNotice}
           >
-            {userVersion === 'bangla' ? 'প্রি-বুক করুন' : 'Pre-Book Now'}
+            {showLoginNotice 
+              ? (userVersion === 'bangla' ? '⚠️ প্রথমে লগইন করুন' : '⚠️ Please Login First')
+              : (userVersion === 'bangla' ? 'প্রি-বুক করুন' : 'Pre-Book Now')
+            }
           </button>
         ) : (
           <button 
-            className="add-to-cart-btn"
-            onClick={() => onAddToCart(product, selectedSize)}
+            className={`add-to-cart-btn ${showLoginNotice ? 'login-notice' : ''}`}
+            onClick={() => {
+              if (user) {
+                onAddToCart(product, selectedSize);
+              } else {
+                setShowLoginNotice(true);
+                setTimeout(() => setShowLoginNotice(false), 2000);
+              }
+            }}
+            disabled={showLoginNotice}
           >
-            <Plus size={18} />
-            {userVersion === 'bangla' ? 'কার্টে যোগ করুন' : 'Add to Cart'}
+            {showLoginNotice ? (
+              userVersion === 'bangla' ? '⚠️ প্রথমে লগইন করুন' : '⚠️ Please Login First'
+            ) : (
+              <>
+                <Plus size={18} />
+                {userVersion === 'bangla' ? 'কার্টে যোগ করুন' : 'Add to Cart'}
+              </>
+            )}
           </button>
         )}
       </div>

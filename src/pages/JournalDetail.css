@@ -420,6 +420,26 @@
   cursor: not-allowed;
 }
 
+/* Login Notice Styles */
+.engagement-btn.login-notice,
+.comment-submit.login-notice,
+.sticker-btn.login-notice {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border-color: #f59e0b;
+  color: white;
+  animation: buttonPulse 0.5s ease;
+  cursor: not-allowed;
+}
+
+@keyframes buttonPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
 .login-prompt {
   text-align: center;
   padding: 2rem;

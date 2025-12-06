@@ -44,7 +44,7 @@ export default function JournalEditor() {
         if (!j) return;
         // ensure only owner can edit (client-side check)
         if (j.authorSupabaseId && user && j.authorSupabaseId !== user.id) {
-          alert('You are not authorized to edit this journal');
+          // Redirect unauthorized users
           navigate(`/journal/${editId}`);
           return;
         }

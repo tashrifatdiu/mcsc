@@ -142,7 +142,7 @@ export default function AdminJacketOrders() {
 
   const bulkUpdateStatus = async (newStatus) => {
     if (selectedOrders.length === 0) {
-      alert('Please select orders first');
+      setMessage({ type: 'error', text: 'Please select orders first' });
       return;
     }
 
@@ -190,7 +190,7 @@ export default function AdminJacketOrders() {
       : orders;
 
     if (ordersToExport.length === 0) {
-      alert(`No ${statusFilter || 'orders'} to export`);
+      setMessage({ type: 'error', text: `No ${statusFilter || 'orders'} to export` });
       return;
     }
 

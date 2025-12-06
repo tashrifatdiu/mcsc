@@ -17,6 +17,9 @@ export default function JournalDetail() {
   const [commentText, setCommentText] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
   const [showRain, setShowRain] = useState(false);
+  const [showLikeNotice, setShowLikeNotice] = useState(false);
+  const [showCommentNotice, setShowCommentNotice] = useState(false);
+  const [showStickerNotice, setShowStickerNotice] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -71,7 +74,8 @@ export default function JournalDetail() {
 
   const handleLike = async () => {
     if (!user) {
-      alert('Please login to like journals');
+      setShowLikeNotice(true);
+      setTimeout(() => setShowLikeNotice(false), 2000);
       return;
     }
     try {
@@ -79,14 +83,14 @@ export default function JournalDetail() {
       await reloadJournal();
     } catch (err) {
       console.error('like error', err);
-      alert('Failed to like: ' + (err.message || 'server error'));
     }
   };
 
   const handleComment = async (e) => {
     e.preventDefault();
     if (!user) {
-      alert('Please login to comment');
+      setShowCommentNotice(true);
+      setTimeout(() => setShowCommentNotice(false), 2000);
       return;
     }
     if (!commentText.trim()) return;
@@ -98,7 +102,6 @@ export default function JournalDetail() {
       await reloadJournal();
     } catch (err) {
       console.error('comment error', err);
-      alert('Failed to comment: ' + (err.message || 'server error'));
     } finally {
       setSubmittingComment(false);
     }
@@ -106,7 +109,8 @@ export default function JournalDetail() {
 
   const handleSticker = async (sticker) => {
     if (!user) {
-      alert('Please login to add stickers');
+      setShowStickerNotice(true);
+      setTimeout(() => setShowStickerNotice(false), 2000);
       return;
     }
     try {
@@ -114,7 +118,6 @@ export default function JournalDetail() {
       await reloadJournal();
     } catch (err) {
       console.error('sticker error', err);
-      alert('Failed to add sticker: ' + (err.message || 'server error'));
     }
   };
 
@@ -212,7 +215,6 @@ export default function JournalDetail() {
                       navigate('/journal');
                     } catch (err) {
                       console.error('delete failed', err);
-                      alert('Delete failed: ' + (err.message || 'server error'));
                     }
                   }}
                 >
@@ -233,12 +235,19 @@ export default function JournalDetail() {
         <div className="engagement-section">
           <div className="engagement-actions">
             <button 
-              className={`engagement-btn like-btn ${isLiked ? 'liked' : ''}`}
+              className={`engagement-btn like-btn ${isLiked ? 'liked' : ''} ${showLikeNotice ? 'login-notice' : ''}`}
               onClick={handleLike}
               title={user ? (isLiked ? 'Unlike' : 'Like') : 'Login to like'}
+              disabled={showLikeNotice}
             >
-              <Heart size={20} fill={isLiked ? 'currentColor' : 'none'} />
-              <span>{likesCount}</span>
+              {showLikeNotice ? (
+                <span>⚠️ Login First</span>
+              ) : (
+                <>
+                  <Heart size={20} fill={isLiked ? 'currentColor' : 'none'} />
+                  <span>{likesCount}</span>
+                </>
+              )}
             </button>
 
             <div className="engagement-btn comment-btn">
@@ -253,13 +262,20 @@ export default function JournalDetail() {
               {STICKER_OPTIONS.map(sticker => (
                 <button
                   key={sticker}
-                  className="sticker-btn"
+                  className={`sticker-btn ${showStickerNotice ? 'login-notice' : ''}`}
                   onClick={() => handleSticker(sticker)}
                   title={user ? 'Add sticker' : 'Login to add stickers'}
+                  disabled={showStickerNotice}
                 >
-                  <span className="sticker-emoji">{sticker}</span>
-                  {stickersMap[sticker] && (
-                    <span className="sticker-count">{stickersMap[sticker]}</span>
+                  {showStickerNotice ? (
+                    <span className="sticker-emoji">⚠️</span>
+                  ) : (
+                    <>
+                      <span className="sticker-emoji">{sticker}</span>
+                      {stickersMap[sticker] && (
+                        <span className="sticker-count">{stickersMap[sticker]}</span>
+                      )}
+                    </>
                   )}
                 </button>
               ))}
@@ -285,11 +301,17 @@ export default function JournalDetail() {
               />
               <button 
                 type="submit" 
-                className="comment-submit"
-                disabled={submittingComment || !commentText.trim()}
+                className={`comment-submit ${showCommentNotice ? 'login-notice' : ''}`}
+                disabled={submittingComment || !commentText.trim() || showCommentNotice}
               >
-                <Send size={18} />
-                {submittingComment ? 'Posting...' : 'Post Comment'}
+                {showCommentNotice ? (
+                  '⚠️ Login First'
+                ) : (
+                  <>
+                    <Send size={18} />
+                    {submittingComment ? 'Posting...' : 'Post Comment'}
+                  </>
+                )}
               </button>
             </form>
           )}
