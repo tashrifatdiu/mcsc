@@ -21,7 +21,7 @@ const ALL_PRODUCTS = {
     {
       id: 'club-jacket-english',
       name: 'Club Jacket (English Version)',
-      price: 999,
+      price: 950,
       originalPrice: 1299,
       image: jacketEnglishFront,
       imageBack: jacketEnglishBack,
@@ -46,7 +46,7 @@ const ALL_PRODUCTS = {
     {
       id: 'club-jacket-bangla',
       name: 'ক্লাব জ্যাকেট (বাংলা ভার্সন)',
-      price: 999,
+      price: 950,
       originalPrice: 1299,
       image: jacketBanglaFront,
       imageBack: jacketBanglaBack,

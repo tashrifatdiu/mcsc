@@ -14,7 +14,7 @@ export default function JacketPreBookModal({ jacket, preselectedSize, user, prof
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
 
-  const BKASH_NUMBER = '01XXXXXXXXX'; // Replace with actual bKash number
+  const BKASH_NUMBER = '01842577966';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,7 +39,7 @@ export default function JacketPreBookModal({ jacket, preselectedSize, user, prof
           userPhone: profile?.whatsapp || '',
           jacketType: jacket.version,
           size: formData.size,
-          amount: 999,
+          amount: 950,
           transactionId: formData.transactionId,
           bkashNumber: formData.bkashNumber,
           studentProfile: profile ? {
@@ -94,13 +94,39 @@ export default function JacketPreBookModal({ jacket, preselectedSize, user, prof
         <h2>Pre-Book Jacket</h2>
         <p className="modal-subtitle">{jacket.name}</p>
 
-        <div className="payment-instructions">
-          <h3>Payment Instructions:</h3>
-          <ol>
-            <li>Send <strong>৳999</strong> to bKash: <strong>{BKASH_NUMBER}</strong></li>
-            <li>Copy the Transaction ID from bKash</li>
-            <li>Paste it below and submit</li>
-          </ol>
+        <div className="payment-instructions-box">
+          <div className="payment-step-header">
+            <span className="step-badge">STEP 1</span>
+            <h3>Make Payment First</h3>
+          </div>
+          
+          <div className="bkash-payment-box">
+            <div className="bkash-logo">📱 bKash</div>
+            <div className="payment-amount">৳950</div>
+            <div className="bkash-number-display">
+              <span className="label">Send Money To:</span>
+              <div className="number-box">{BKASH_NUMBER}</div>
+              <button 
+                type="button"
+                className="copy-btn"
+                onClick={() => {
+                  navigator.clipboard.writeText(BKASH_NUMBER);
+                  alert('Number copied!');
+                }}
+              >
+                📋 Copy Number
+              </button>
+            </div>
+          </div>
+
+          <div className="payment-step-header">
+            <span className="step-badge">STEP 2</span>
+            <h3>Enter Transaction Details Below</h3>
+          </div>
+          
+          <div className="important-note">
+            ⚠️ <strong>Important:</strong> Complete the bKash payment first, then enter your Transaction ID below
+          </div>
         </div>
 
         {error && (
