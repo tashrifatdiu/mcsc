@@ -4,6 +4,7 @@ import { fetchJournals } from '../apiJournal';
 import { Link, useLocation } from 'react-router-dom';
 import { BookOpen, Plus, FileText, Grid3x3, User, Calendar, List } from 'lucide-react';
 import useAuth from '../lib/useAuth';
+import JournalContributors from '../components/JournalContributors';
 import './JournalList.css';
 
 export default function JournalList() {
@@ -148,6 +149,8 @@ export default function JournalList() {
           ))}
         </div>
       )}
+
+      <JournalContributors />
     </div>
   );
 }

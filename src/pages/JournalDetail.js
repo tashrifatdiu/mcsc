@@ -1,76 +1,319 @@
 // client/src/pages/JournalDetail.js
 import React, { useEffect, useState } from 'react';
-import { fetchJournalById } from '../apiJournal';
+import { fetchJournalById, deleteJournal, likeJournal, commentJournal, addSticker } from '../apiJournal';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { Heart, MessageCircle, Send, ArrowLeft } from 'lucide-react';
 import useAuth from '../lib/useAuth';
-import { deleteJournal } from '../apiJournal';
+import RainingStickers from '../components/RainingStickers';
+import './JournalDetail.css';
+
+const STICKER_OPTIONS = ['❤️', '👍', '🎉', '🔥', '💯', '✨'];
 
 export default function JournalDetail() {
   const { id } = useParams();
   const [journal, setJournal] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [commentText, setCommentText] = useState('');
+  const [submittingComment, setSubmittingComment] = useState(false);
+  const [showRain, setShowRain] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    (async () => {
-      try {
-        const data = await fetchJournalById(id);
-        setJournal(data.journal);
-        setError(null);
-      } catch (err) {
-        console.error('fetch journal detail err', err);
-        setError(err.message || 'Failed to load journal');
-      } finally {
-        setLoading(false);
-      }
-    })();
-    // scroll to top smoothly on mount
+    loadJournal();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [id]);
 
-  if (loading) return <div style={{ maxWidth: 900, margin: '20px auto' }} className="page-fade"><div style={{ textAlign:'center' }}><div className="spinner"/></div></div>;
-  if (error) return <div style={{ maxWidth: 900, margin: '20px auto' }} className="page-fade">{error}</div>;
-  if (!journal) return <div style={{ maxWidth: 900, margin: '20px auto' }} className="page-fade">Not found</div>;
+  const loadJournal = async () => {
+    try {
+      const data = await fetchJournalById(id);
+      setJournal(data.journal);
+      setError(null);
+    } catch (err) {
+      console.error('fetch journal detail err', err);
+      setError(err.message || 'Failed to load journal');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  return (
-  <div style={{ maxWidth: 900, margin: '20px auto', padding: 16 }} className="page-fade content-wrap">
-      <div style={{ marginBottom: 8 }}>
-        {journal.headerSize === 'h1' ? <h1 style={{ margin: 0, color: journal.color }}>{journal.title}</h1> : journal.headerSize === 'h2' ? <h2 style={{ margin: 0, color: journal.color }}>{journal.title}</h2> : <h3 style={{ margin: 0, color: journal.color }}>{journal.title}</h3>}
-        <div className="text-muted" style={{ marginTop: 6 }}>
-          <Link to={`/journal/author/${journal.authorSupabaseId || journal.authorId || journal.author}`} className="text-muted">{journal.authorName || journal.authorEmail}</Link>
-          {' '}• {new Date(journal.createdAt).toLocaleString()}
-        </div>
-        <div style={{ marginTop: 8 }}>
-          {user && user.id === journal.authorSupabaseId && (
-            <div style={{ display: 'flex', gap: 8 }}>
-              <Link to={`/journal/edit/${journal._id}`} className="btn btn-secondary">Edit</Link>
-              <button className="btn btn-secondary" onClick={async () => {
-                if (!confirm('Delete this journal? This action cannot be undone.')) return;
-                try {
-                  await deleteJournal(journal._id);
-                  navigate('/journal');
-                } catch (err) {
-                  console.error('delete failed', err);
-                  alert('Delete failed: ' + (err.message || 'server error'));
-                }
-              }}>Delete</button>
-            </div>
-          )}
+  // Trigger rain animation on page load if there are stickers or likes
+  useEffect(() => {
+    if (journal && !loading) {
+      const likesArray = Array.isArray(journal.likes) ? journal.likes : [];
+      const commentsArray = Array.isArray(journal.comments) ? journal.comments : [];
+      const stickersMap = journal.stickers 
+        ? (journal.stickers instanceof Map 
+            ? Object.fromEntries(journal.stickers) 
+            : (typeof journal.stickers === 'object' ? journal.stickers : {}))
+        : {};
+      
+      const hasEngagement = likesArray.length > 0 || commentsArray.length > 0 || Object.keys(stickersMap).length > 0;
+      if (hasEngagement) {
+        // Trigger animation after a short delay
+        const timer = setTimeout(() => {
+          setShowRain(true);
+        }, 500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [journal, loading]);
+
+  const handleLike = async () => {
+    if (!user) {
+      alert('Please login to like journals');
+      return;
+    }
+    try {
+      await likeJournal(id);
+      await loadJournal();
+    } catch (err) {
+      console.error('like error', err);
+      alert('Failed to like: ' + (err.message || 'server error'));
+    }
+  };
+
+  const handleComment = async (e) => {
+    e.preventDefault();
+    if (!user) {
+      alert('Please login to comment');
+      return;
+    }
+    if (!commentText.trim()) return;
+
+    try {
+      setSubmittingComment(true);
+      await commentJournal(id, commentText);
+      setCommentText('');
+      await loadJournal();
+    } catch (err) {
+      console.error('comment error', err);
+      alert('Failed to comment: ' + (err.message || 'server error'));
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
+
+  const handleSticker = async (sticker) => {
+    if (!user) {
+      alert('Please login to add stickers');
+      return;
+    }
+    try {
+      await addSticker(id, sticker);
+      await loadJournal();
+    } catch (err) {
+      console.error('sticker error', err);
+      alert('Failed to add sticker: ' + (err.message || 'server error'));
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="journal-detail-page">
+        <div className="detail-container">
+          <div style={{ textAlign: 'center', padding: '3rem' }}>
+            <div className="spinner" />
+          </div>
         </div>
       </div>
-      
-  <div style={{ fontFamily: journal.fontFamily }} className="text-primary" dangerouslySetInnerHTML={{ __html: journal.bodyHtml }} />
+    );
+  }
 
-      {journal.latexSnippets && journal.latexSnippets.length > 0 && (
-        <div style={{ marginTop: 12 }}>
-          <h4>LaTeX snippets used</h4>
-          <ul>
-            {journal.latexSnippets.map((s, i) => <li key={i}><code>{String(s)}</code></li>)}
-          </ul>
+  if (error || !journal) {
+    return (
+      <div className="journal-detail-page">
+        <div className="detail-container">
+          <div className="error-state">
+            <h3>{error || 'Journal not found'}</h3>
+            <Link to="/journal" className="back-link">
+              <ArrowLeft size={18} />
+              Back to Journals
+            </Link>
+          </div>
         </div>
-      )}
+      </div>
+    );
+  }
+
+  // Safely handle likes array
+  const likesArray = Array.isArray(journal.likes) ? journal.likes : [];
+  const isLiked = user && likesArray.includes(user.id);
+  const likesCount = likesArray.length;
+  
+  // Safely handle comments array
+  const commentsArray = Array.isArray(journal.comments) ? journal.comments : [];
+  const commentsCount = commentsArray.length;
+  
+  // Handle stickers - it might be a Map or plain object
+  const stickersMap = journal.stickers 
+    ? (journal.stickers instanceof Map 
+        ? Object.fromEntries(journal.stickers) 
+        : (typeof journal.stickers === 'object' ? journal.stickers : {}))
+    : {};
+
+  return (
+    <div className="journal-detail-page">
+      <RainingStickers 
+        stickers={stickersMap} 
+        likes={likesCount}
+        trigger={showRain} 
+      />
+      
+      <div className="detail-container">
+        <Link to="/journal" className="back-link">
+          <ArrowLeft size={18} />
+          Back to Journals
+        </Link>
+
+        <article className="journal-article">
+          <header className="article-header">
+            <h1 className="article-title" style={{ color: journal.color }}>
+              {journal.title}
+            </h1>
+            <div className="article-meta">
+              <Link 
+                to={`/journal/author/${journal.authorSupabaseId}`}
+                className="author-name"
+              >
+                {journal.authorName || journal.authorEmail}
+              </Link>
+              <span className="separator">•</span>
+              <time className="publish-date">
+                {new Date(journal.publishedAt || journal.createdAt).toLocaleDateString('en-US', {
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric'
+                })}
+              </time>
+            </div>
+
+            {user && user.id === journal.authorSupabaseId && (
+              <div className="author-actions">
+                <Link to={`/journal/edit/${journal._id}`} className="btn-edit">
+                  Edit
+                </Link>
+                <button 
+                  className="btn-delete"
+                  onClick={async () => {
+                    if (!window.confirm('Delete this journal? This action cannot be undone.')) return;
+                    try {
+                      await deleteJournal(journal._id);
+                      navigate('/journal');
+                    } catch (err) {
+                      console.error('delete failed', err);
+                      alert('Delete failed: ' + (err.message || 'server error'));
+                    }
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
+            )}
+          </header>
+
+          <div 
+            className="article-content"
+            style={{ fontFamily: journal.fontFamily }}
+            dangerouslySetInnerHTML={{ __html: journal.bodyHtml }}
+          />
+        </article>
+
+        {/* Engagement Section */}
+        <div className="engagement-section">
+          <div className="engagement-actions">
+            <button 
+              className={`engagement-btn like-btn ${isLiked ? 'liked' : ''}`}
+              onClick={handleLike}
+              title={user ? (isLiked ? 'Unlike' : 'Like') : 'Login to like'}
+            >
+              <Heart size={20} fill={isLiked ? 'currentColor' : 'none'} />
+              <span>{likesCount}</span>
+            </button>
+
+            <div className="engagement-btn comment-btn">
+              <MessageCircle size={20} />
+              <span>{commentsCount}</span>
+            </div>
+          </div>
+
+          <div className="stickers-section">
+            <h4>React with stickers</h4>
+            <div className="stickers-grid">
+              {STICKER_OPTIONS.map(sticker => (
+                <button
+                  key={sticker}
+                  className="sticker-btn"
+                  onClick={() => handleSticker(sticker)}
+                  title={user ? 'Add sticker' : 'Login to add stickers'}
+                >
+                  <span className="sticker-emoji">{sticker}</span>
+                  {stickersMap[sticker] && (
+                    <span className="sticker-count">{stickersMap[sticker]}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Comments Section */}
+        <div className="comments-section">
+          <h3 className="comments-title">
+            Comments ({commentsCount})
+          </h3>
+
+          {user && (
+            <form className="comment-form" onSubmit={handleComment}>
+              <textarea
+                className="comment-input"
+                placeholder="Write a comment..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                rows={3}
+                disabled={submittingComment}
+              />
+              <button 
+                type="submit" 
+                className="comment-submit"
+                disabled={submittingComment || !commentText.trim()}
+              >
+                <Send size={18} />
+                {submittingComment ? 'Posting...' : 'Post Comment'}
+              </button>
+            </form>
+          )}
+
+          {!user && (
+            <div className="login-prompt">
+              <Link to="/login">Login</Link> to leave a comment
+            </div>
+          )}
+
+          <div className="comments-list">
+            {commentsArray.length > 0 ? (
+              commentsArray.map((comment, index) => (
+                <div key={index} className="comment-item">
+                  <div className="comment-header">
+                    <span className="comment-author">{comment.userName || 'Anonymous'}</span>
+                    <span className="comment-date">
+                      {new Date(comment.createdAt).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })}
+                    </span>
+                  </div>
+                  <p className="comment-text">{comment.text}</p>
+                </div>
+              ))
+            ) : (
+              <p className="no-comments">No comments yet. Be the first to comment!</p>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

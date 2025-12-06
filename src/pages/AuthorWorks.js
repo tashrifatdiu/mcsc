@@ -1,48 +1,105 @@
 import React, { useEffect, useState } from 'react';
 import { fetchJournals } from '../apiJournal';
-import { useParams, Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
+import { User, Calendar, BookOpen, ArrowLeft } from 'lucide-react';
+import './JournalList.css';
 
 export default function AuthorWorks() {
   const { authorId } = useParams();
-  const [works, setWorks] = useState([]);
+  const [journals, setJournals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [authorName, setAuthorName] = useState('');
 
   useEffect(() => {
-    (async () => {
-      try {
-        const data = await fetchJournals({ limit: 100, authorId });
-        setWorks(data.journals || []);
-      } catch (err) {
-        console.error('author works fetch err', err);
-      } finally {
-        setLoading(false);
-      }
-    })();
+    loadAuthorJournals();
   }, [authorId]);
 
+  const loadAuthorJournals = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchJournals({ authorId, limit: 50 });
+      setJournals(data.journals || []);
+      if (data.journals && data.journals.length > 0) {
+        setAuthorName(data.journals[0].authorName || data.journals[0].authorEmail || 'Unknown Author');
+      }
+    } catch (err) {
+      console.error('fetch author journals err', err);
+      setJournals([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getExcerpt = (html, maxLength = 150) => {
+    const text = html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
+  };
+
   return (
-    <div style={{ maxWidth: 980, margin: '20px auto' }} className="page-fade">
-      <h2>Author's works</h2>
+    <div className="journal-list-page">
+      <div className="journal-header-section">
+        <Link to="/journal" className="back-link" style={{ marginBottom: '1rem', display: 'inline-flex' }}>
+          <ArrowLeft size={18} />
+          Back to Journals
+        </Link>
+        <div className="journal-title-area">
+          <div className="header-title">
+            <User size={32} />
+            <h1>{authorName}'s Works</h1>
+          </div>
+          <p className="header-subtitle">
+            {journals.length} {journals.length === 1 ? 'journal' : 'journals'} published
+          </p>
+        </div>
+      </div>
+
       {loading ? (
-        <div style={{ display: 'grid', gap: 12 }}>
-          {[1,2,3].map(i => (
-            <div key={i} className="skeleton" style={{ padding:12, borderRadius:10 }}>
-              <div className="skeleton-line" style={{ width: '50%' }} />
-              <div className="skeleton-line" style={{ width: '30%', marginTop:6 }} />
-              <div className="skeleton-block" />
+        <div className="journal-grid">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <div key={i} className="journal-card skeleton-card">
+              <div className="skeleton-title"></div>
+              <div className="skeleton-meta"></div>
+              <div className="skeleton-text"></div>
+              <div className="skeleton-text short"></div>
             </div>
           ))}
         </div>
+      ) : journals.length === 0 ? (
+        <div className="empty-state">
+          <BookOpen size={64} />
+          <h3>No published journals yet</h3>
+          <p>This author hasn't published any journals</p>
+        </div>
       ) : (
-        <div style={{ display: 'grid', gap: 12 }}>
-          {works.map(j => (
-            <div key={j._id} className="content-wrap" style={{ padding:12, borderRadius:10 }}>
-              <Link to={`/journal/${j._id}`} className="text-accent" style={{ fontSize:18, fontWeight:700 }}>{j.title}</Link>
-              <div className="text-muted" style={{ marginTop:6 }}>{j.authorName || j.authorEmail} • {new Date(j.createdAt).toLocaleString()}</div>
-              <div style={{ marginTop:8 }} className="text-primary" dangerouslySetInnerHTML={{ __html: (j.bodyHtml || '').slice(0, 300) + (j.bodyHtml && j.bodyHtml.length > 300 ? '...' : '') }} />
-            </div>
+        <div className="journal-grid">
+          {journals.map(j => (
+            <Link 
+              key={j._id} 
+              to={`/journal/${j._id}`}
+              className="journal-card"
+            >
+              <h3 className="journal-title">{j.title}</h3>
+              
+              <div className="journal-meta">
+                <span className="date">
+                  <Calendar size={14} />
+                  {new Date(j.publishedAt || j.createdAt).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                  })}
+                </span>
+              </div>
+
+              <p className="journal-excerpt">
+                {getExcerpt(j.bodyHtml || '')}
+              </p>
+
+              <div className="read-more">
+                Read more →
+              </div>
+            </Link>
           ))}
-          {works.length === 0 && <div>No public works by this author.</div>}
         </div>
       )}
     </div>

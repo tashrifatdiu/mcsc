@@ -34,11 +34,14 @@ export async function updateJournal(id, payload) {
   return data;
 }
 
-export async function fetchJournals({ limit = 20, skip = 0 } = {}) {
-  // support mine flag and author filter
+export async function fetchJournals({ limit = 20, skip = 0, sortBy = 'recent', search = '', timeFilter = '', mine = false, authorId = '' } = {}) {
+  // support mine flag, author filter, search, time filter, and sort
   const query = new URLSearchParams({ limit: String(limit), skip: String(skip) });
-  if (arguments[0] && arguments[0].mine) query.set('mine', 'true');
-  if (arguments[0] && arguments[0].authorId) query.set('authorId', arguments[0].authorId);
+  if (sortBy) query.set('sortBy', sortBy);
+  if (search) query.set('search', search);
+  if (timeFilter) query.set('timeFilter', timeFilter);
+  if (mine) query.set('mine', 'true');
+  if (authorId) query.set('authorId', authorId);
 
   const url = `${API_BASE.replace(/\/$/, '')}/api/journal?${query.toString()}`;
   // Include token when available. For public lists it's harmless; for mine=true it's required.
@@ -78,5 +81,49 @@ export async function fetchJournalById(id) {
   const res = await fetch(`${API_BASE.replace(/\/$/, '')}/api/journal/${id}`, { headers });
   const data = await res.json().catch(() => null);
   if (!res.ok) throw new Error(data?.error || data?.message || 'Failed to fetch journal');
+  return data;
+}
+
+export async function likeJournal(id) {
+  const token = await getAccessToken();
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(`${API_BASE.replace(/\/$/, '')}/api/journal/${id}/like`, {
+    method: 'POST',
+    headers
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.error || data?.message || 'Failed to like journal');
+  return data;
+}
+
+export async function commentJournal(id, text) {
+  const token = await getAccessToken();
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(`${API_BASE.replace(/\/$/, '')}/api/journal/${id}/comment`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ text })
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.error || data?.message || 'Failed to add comment');
+  return data;
+}
+
+export async function addSticker(id, sticker) {
+  const token = await getAccessToken();
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(`${API_BASE.replace(/\/$/, '')}/api/journal/${id}/sticker`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ sticker })
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.error || data?.message || 'Failed to add sticker');
   return data;
 }
