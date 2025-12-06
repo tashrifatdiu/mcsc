@@ -740,7 +740,8 @@
 
 .loading-state,
 .empty-state {
-  grid-column: 1 / -1;
+  grid-column-start: 1;
+  grid-column-end: -1;
   padding: 4rem 2rem;
   text-align: center;
   background: var(--bg-card);

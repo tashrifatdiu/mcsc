@@ -1,9 +1,11 @@
 :root{
-  --bg-very-dark: #13071a; /* page background */
+  /* page background */
+  --bg-very-dark: #13071a;
   --panel: rgba(255,255,255,0.04);
   --card: rgba(255,255,255,0.06);
   --card-hover: rgba(255,255,255,0.09);
-  --primary: #9B6DFF; /* purple accent */
+  /* purple accent */
+  --primary: #9B6DFF;
   --accent2: rgba(155,109,255,0.18);
   --text: #f7f7fb;
   --text-dim: #cfc7dd;
@@ -11,8 +13,10 @@
   --radius: 12px;
   --shadow: 0 8px 30px rgba(9,6,22,0.6);
   --editor-font: 'Quicksand', system-ui, sans-serif;
-  --editor-bg: #000000; /* Matte black */
-  --editor-text: #ffffff; /* White text */
+  /* Matte black */
+  --editor-bg: #000000;
+  /* White text */
+  --editor-text: #ffffff;
 }
 
 /* Editor container - matches component markup */
@@ -21,7 +25,8 @@
   max-width: 1100px;
   margin: 18px auto;
   padding: 18px;
-  background: transparent; /* keep page background visible */
+  /* keep page background visible */
+  background: transparent;
   color: var(--text);
 }
 
@@ -71,15 +76,17 @@
 
 .editor-toolbar-buttons{ gap:8px }
 
-/* toolbar buttons: neutral, static (no hover/animation) */
+
 .editor-tool-btn{
-  background: #f3f4f6; /* neutral light */
+  /* neutral light */
+  background: #f3f4f6;
   color: #111827;
   border: 1px solid #e5e7eb;
   box-shadow: none;
   transition: none;
 }
-.editor-tool-btn:hover{ /* no hover effect to avoid distraction */
+/* no hover effect to avoid distraction */
+.editor-tool-btn:hover{
   background: #f3f4f6;
   transform: none;
   box-shadow: none;
@@ -203,15 +210,21 @@
 
 /* Editor content area */
 .editor-content {
-  background: #ffffff; /* white writing field for readability */
+  /* white writing field for readability */
+  background: #ffffff;
   border-radius: 10px;
   border: 1px solid rgba(16,24,40,0.08);
   min-height: 360px;
-  padding: clamp(16px, 3.5vw, 36px) clamp(12px, 4vw, 48px); /* roomy, novel-like margins scale on smaller screens */
-  max-width: 100%; /* allow full width inside container */
-  margin: 0 auto; /* center the writing column */
-  color: #111827; /* dark text for writing */
-  font-family: Georgia, 'Times New Roman', serif; /* novel / book serif */
+  /* roomy, novel-like margins scale on smaller screens */
+  padding: clamp(16px, 3.5vw, 36px) clamp(12px, 4vw, 48px);
+  /* allow full width inside container */
+  max-width: 100%;
+  /* center the writing column */
+  margin: 0 auto;
+  /* dark text for writing */
+  color: #111827;
+  /* novel or book serif */
+  font-family: Georgia, 'Times New Roman', serif;
   line-height: 1.6;
   transition: all 0.2s ease;
 }

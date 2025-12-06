@@ -21,22 +21,22 @@ export default function JournalDetail() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const loadJournal = async () => {
+      try {
+        const data = await fetchJournalById(id);
+        setJournal(data.journal);
+        setError(null);
+      } catch (err) {
+        console.error('fetch journal detail err', err);
+        setError(err.message || 'Failed to load journal');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadJournal();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [id]);
-
-  const loadJournal = async () => {
-    try {
-      const data = await fetchJournalById(id);
-      setJournal(data.journal);
-      setError(null);
-    } catch (err) {
-      console.error('fetch journal detail err', err);
-      setError(err.message || 'Failed to load journal');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Trigger rain animation on page load if there are stickers or likes
   useEffect(() => {
@@ -60,6 +60,15 @@ export default function JournalDetail() {
     }
   }, [journal, loading]);
 
+  const reloadJournal = async () => {
+    try {
+      const data = await fetchJournalById(id);
+      setJournal(data.journal);
+    } catch (err) {
+      console.error('reload journal error', err);
+    }
+  };
+
   const handleLike = async () => {
     if (!user) {
       alert('Please login to like journals');
@@ -67,7 +76,7 @@ export default function JournalDetail() {
     }
     try {
       await likeJournal(id);
-      await loadJournal();
+      await reloadJournal();
     } catch (err) {
       console.error('like error', err);
       alert('Failed to like: ' + (err.message || 'server error'));
@@ -86,7 +95,7 @@ export default function JournalDetail() {
       setSubmittingComment(true);
       await commentJournal(id, commentText);
       setCommentText('');
-      await loadJournal();
+      await reloadJournal();
     } catch (err) {
       console.error('comment error', err);
       alert('Failed to comment: ' + (err.message || 'server error'));
@@ -102,7 +111,7 @@ export default function JournalDetail() {
     }
     try {
       await addSticker(id, sticker);
-      await loadJournal();
+      await reloadJournal();
     } catch (err) {
       console.error('sticker error', err);
       alert('Failed to add sticker: ' + (err.message || 'server error'));

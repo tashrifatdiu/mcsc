@@ -98,9 +98,11 @@
 
 .quiz-section .submit-quiz-btn {
   background: linear-gradient(135deg, #ff7eb3, #ff758c);
-  color: #ffffff; /* Changed text color to white */
+  /* Changed text color to white */
+  color: #ffffff;
   border: none;
-  border-radius: 12px; /* Slightly reduced border radius for a sharper look */
+  /* Slightly reduced border radius for a sharper look */
+  border-radius: 12px;
   padding: 12px 28px;
   font-weight: 700;
   font-size: 1.1rem;
@@ -108,12 +110,14 @@
   margin-top: 18px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   transition: background 0.3s, transform 0.2s;
-  text-align: center; /* Ensures alignment */
+  /* Ensures alignment */
+  text-align: center;
 }
 
 .quiz-section .submit-quiz-btn:hover {
   background: linear-gradient(135deg, #ff758c, #ff7eb3);
-  transform: translateY(-2px) scale(1.05); /* Added hover elevation */
+  /* Added hover elevation */
+  transform: translateY(-2px) scale(1.05);
 }
 
 /* Progress Bar */
@@ -199,8 +203,8 @@
 /* Sidebar video button hover styles */
 .cp-video-btn { transition: background 200ms ease, transform 120ms ease; }
 .cp-video-btn:hover { transform: translateX(4px); background: #3f3f46; }
-/
-* Custom Video Player Styling - Remove YouTube Branding */
+
+/* Custom Video Player Styling - Remove YouTube Branding */
 .video-wrapper {
   position: relative;
   padding-bottom: 56.25%;

@@ -18,12 +18,14 @@ export const AuthProvider = ({ children }) => {
 
     fetchUser();
 
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+    const authListener = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);
     });
 
     return () => {
-      subscription.unsubscribe();
+      if (authListener && authListener.data && authListener.data.subscription) {
+        authListener.data.subscription.unsubscribe();
+      }
     };
   }, []);
 

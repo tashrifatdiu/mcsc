@@ -621,7 +621,8 @@
 }
 
 .detail-item.full-width {
-  grid-column: 1 / -1;
+  grid-column-start: 1;
+  grid-column-end: -1;
 }
 
 .security-note {

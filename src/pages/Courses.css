@@ -275,8 +275,7 @@ body, .course-section {
   }
 }
 
-/
-* Course List Page Styles */
+/* Course List Page Styles */
 .course-list-section {
   min-height: 100vh;
   padding: 2rem 1rem;
