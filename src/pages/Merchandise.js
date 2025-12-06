@@ -459,32 +459,51 @@ export default function Merchandise() {
             ) : !showOrderHistory ? (
               <>
                 <div className="cart-items">
-                  {cart.map((item, index) => (
-                    <div key={`${item.id}-${item.size}-${index}`} className="cart-item">
-                      <div className="cart-item-info">
-                        <h4>{item.name}</h4>
-                        <p>Size: {item.size}</p>
-                        <p className="cart-item-price">৳{item.price}</p>
-                      </div>
-                      <div className="cart-item-actions">
-                        <div className="quantity-controls">
-                          <button onClick={() => updateQuantity(item.id, item.size, -1)}>
-                            <Minus size={16} />
-                          </button>
-                          <span>{item.quantity}</span>
-                          <button onClick={() => updateQuantity(item.id, item.size, 1)}>
-                            <Plus size={16} />
+                  {cart.map((item, index) => {
+                    // Size measurements for jackets
+                    const sizeMeasurements = {
+                      'S': '38/27',
+                      'M': '40/28',
+                      'L': '42/29',
+                      'XL': '44/30',
+                      '2XL': '46/31',
+                      'XXL': '46/31'
+                    };
+                    const isJacket = item.id.includes('jacket');
+                    const measurement = sizeMeasurements[item.size];
+                    
+                    return (
+                      <div key={`${item.id}-${item.size}-${index}`} className="cart-item">
+                        <div className="cart-item-info">
+                          <h4>{item.name}</h4>
+                          <p>
+                            Size: {item.size}
+                            {isJacket && measurement && (
+                              <span className="size-measurement"> ({measurement}")</span>
+                            )}
+                          </p>
+                          <p className="cart-item-price">৳{item.price}</p>
+                        </div>
+                        <div className="cart-item-actions">
+                          <div className="quantity-controls">
+                            <button onClick={() => updateQuantity(item.id, item.size, -1)}>
+                              <Minus size={16} />
+                            </button>
+                            <span>{item.quantity}</span>
+                            <button onClick={() => updateQuantity(item.id, item.size, 1)}>
+                              <Plus size={16} />
+                            </button>
+                          </div>
+                          <button 
+                            className="remove-btn"
+                            onClick={() => removeFromCart(item.id, item.size)}
+                          >
+                            <Trash2 size={16} />
                           </button>
                         </div>
-                        <button 
-                          className="remove-btn"
-                          onClick={() => removeFromCart(item.id, item.size)}
-                        >
-                          <Trash2 size={16} />
-                        </button>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 <div className="cart-total">
@@ -687,6 +706,18 @@ function ProductCard({ product, onAddToCart, onPreBook, onShowCart, user, userVe
   const nameplateBangla = require('./images/clubNamePlateBanglaVersion.png');
   const cortPin = require('./images/cort pin.png');
 
+  // Size measurements (chest/length in inches)
+  const sizeMeasurements = {
+    'S': '38/27',
+    'M': '40/28',
+    'L': '42/29',
+    'XL': '44/30',
+    '2XL': '46/31',
+    'XXL': '46/31'
+  };
+  
+  const isJacket = product.id.includes('jacket');
+
   return (
     <div className={`product-card ${product.disabled ? 'disabled-product' : ''}`}>
       <div 
@@ -758,13 +789,19 @@ function ProductCard({ product, onAddToCart, onPreBook, onShowCart, user, userVe
           </div>
         ) : (
           <div className="product-size">
-            <label>{userVersion === 'bangla' ? 'সাইজ:' : 'Size:'}</label>
+            <label>
+              {userVersion === 'bangla' ? 'সাইজ:' : 'Size:'}
+              {isJacket && ' (Chest/Length in inches)'}
+            </label>
             <select 
               value={selectedSize} 
               onChange={(e) => setSelectedSize(e.target.value)}
             >
               {product.sizes.map(size => (
-                <option key={size} value={size}>{size}</option>
+                <option key={size} value={size}>
+                  {size}
+                  {isJacket && sizeMeasurements[size] ? ` - ${sizeMeasurements[size]}` : ''}
+                </option>
               ))}
             </select>
           </div>

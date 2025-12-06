@@ -1,20 +1,38 @@
 import React, { useState } from 'react';
 import { X, CheckCircle } from 'lucide-react';
 import './JacketPreBookModal.css';
+import paymentQR from '../pages/images/payment_qr.jpg';
 
 export default function JacketPreBookModal({ jacket, preselectedSize, user, profile, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
     size: preselectedSize || jacket.sizes[0],
     transactionId: '',
     bkashNumber: '',
-    deliveryAddress: '',
+    campus: 'Main Campus',
+    building: profile?.building || '',
     notes: ''
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
 
   const BKASH_NUMBER = '01842577966';
+
+  // Size measurements (chest/length in inches)
+  const sizeMeasurements = {
+    'S': '38/27',
+    'M': '40/28',
+    'L': '42/29',
+    'XL': '44/30',
+    '2XL': '46/31'
+  };
+
+  // Building options based on campus
+  const buildingOptions = {
+    'Main Campus': ['Main Building', 'Building 27', 'Building 22', 'Building 07'],
+    'Permanent Campus': ['Project 1', 'Project 2', 'Project 3', 'Project 4', 'Project 5', 'Project 6', 'Project 7']
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -48,7 +66,7 @@ export default function JacketPreBookModal({ jacket, preselectedSize, user, prof
             department: profile.department,
             version: profile.version
           } : null,
-          deliveryAddress: formData.deliveryAddress,
+          deliveryAddress: `${formData.campus} - ${formData.building}`,
           notes: formData.notes
         })
       });
@@ -102,38 +120,74 @@ export default function JacketPreBookModal({ jacket, preselectedSize, user, prof
           
           <div className="bkash-payment-box">
             <div className="bkash-logo">📱 bKash</div>
+            <div className="payment-method-highlight">
+              <span className="method-label">⚠️ Use "Make Payment" Option</span>
+              <span className="method-note">(NOT "Send Money")</span>
+            </div>
             <div className="payment-amount">৳950</div>
-            <div className="bkash-number-display">
-              <span className="label">Send Money To:</span>
-              <div className="number-box">{BKASH_NUMBER}</div>
-              <button 
-                type="button"
-                className="copy-btn"
-                onClick={() => {
-                  navigator.clipboard.writeText(BKASH_NUMBER);
-                  alert('Number copied!');
-                }}
-              >
-                📋 Copy Number
-              </button>
+            
+            <div className="payment-options">
+              <div className="payment-option">
+                <div className="bkash-number-display">
+                  <span className="label">Make Payment To:</span>
+                  <div className="number-box">{BKASH_NUMBER}</div>
+                  <button 
+                    type="button"
+                    className="copy-btn"
+                    onClick={() => {
+                      navigator.clipboard.writeText(BKASH_NUMBER);
+                      alert('Number copied!');
+                    }}
+                  >
+                    📋 Copy Number
+                  </button>
+                </div>
+              </div>
+              
+              <div className="payment-divider">OR</div>
+              
+              <div className="payment-option">
+                <div className="qr-code-section">
+                  <span className="label">Scan QR Code:</span>
+                  <img src={paymentQR} alt="Payment QR Code" className="payment-qr-image" />
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="payment-step-header">
-            <span className="step-badge">STEP 2</span>
-            <h3>Enter Transaction Details Below</h3>
-          </div>
-          
-          <div className="important-note">
-            ⚠️ <strong>Important:</strong> Complete the bKash payment first, then enter your Transaction ID below
-          </div>
+          {!paymentConfirmed ? (
+            <div className="payment-confirmation-section">
+              <button 
+                type="button"
+                className="confirm-payment-btn"
+                onClick={() => setPaymentConfirmed(true)}
+              >
+                ✅ I Have Completed the Payment
+              </button>
+              <p className="confirmation-note">
+                Click the button above after you've made the payment
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="payment-step-header">
+                <span className="step-badge">STEP 2</span>
+                <h3>Enter Transaction Details Below</h3>
+              </div>
+              
+              <div className="important-note">
+                ⚠️ <strong>Important:</strong> Enter the Transaction ID you received from bKash
+              </div>
+            </>
+          )}
         </div>
 
         {error && (
           <div className="error-message">{error}</div>
         )}
 
-        <form onSubmit={handleSubmit} className="prebook-form">
+        {paymentConfirmed && (
+          <form onSubmit={handleSubmit} className="prebook-form">
           <div className="form-group">
             <label>Your Name</label>
             <input
@@ -148,21 +202,23 @@ export default function JacketPreBookModal({ jacket, preselectedSize, user, prof
             <label>Amount</label>
             <input
               type="text"
-              value="৳999"
+              value="৳950"
               readOnly
               className="readonly-input"
             />
           </div>
 
           <div className="form-group">
-            <label>Select Size *</label>
+            <label>Select Size * (Chest/Length in inches)</label>
             <select
               value={formData.size}
               onChange={(e) => setFormData({ ...formData, size: e.target.value })}
               required
             >
               {jacket.sizes.map(size => (
-                <option key={size} value={size}>{size}</option>
+                <option key={size} value={size}>
+                  {size} - {sizeMeasurements[size] || 'N/A'}
+                </option>
               ))}
             </select>
           </div>
@@ -190,13 +246,28 @@ export default function JacketPreBookModal({ jacket, preselectedSize, user, prof
           </div>
 
           <div className="form-group">
-            <label>Delivery Address (Optional)</label>
-            <textarea
-              placeholder="Enter your delivery address"
-              value={formData.deliveryAddress}
-              onChange={(e) => setFormData({ ...formData, deliveryAddress: e.target.value })}
-              rows="2"
-            />
+            <label>Delivery Campus *</label>
+            <select
+              value={formData.campus}
+              onChange={(e) => setFormData({ ...formData, campus: e.target.value, building: buildingOptions[e.target.value][0] })}
+              required
+            >
+              <option value="Main Campus">Main Campus</option>
+              <option value="Permanent Campus">Permanent Campus</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label>Delivery Building *</label>
+            <select
+              value={formData.building}
+              onChange={(e) => setFormData({ ...formData, building: e.target.value })}
+              required
+            >
+              {buildingOptions[formData.campus].map(building => (
+                <option key={building} value={building}>{building}</option>
+              ))}
+            </select>
           </div>
 
           <div className="form-group">
@@ -213,6 +284,7 @@ export default function JacketPreBookModal({ jacket, preselectedSize, user, prof
             {submitting ? 'Submitting...' : 'Submit Pre-Order'}
           </button>
         </form>
+        )}
       </div>
     </div>
   );
