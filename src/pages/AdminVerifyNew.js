@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { adminLogin, adminFetchRegistrations, adminApproveRegistration } from '../api';
-import { Search, Filter, ChevronLeft, ChevronRight, CheckCircle, User, Mail, Phone, Building, BookOpen, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { adminFetchRegistrations, adminApproveRegistration } from '../api';
+import { Search, Filter, ChevronLeft, ChevronRight, CheckCircle, User, Mail, Phone, Building, BookOpen, LogOut, ArrowLeft } from 'lucide-react';
 import './AdminVerifyNew.css';
 
 const LOCAL_TOKEN_KEY = 'mcsc_admin_token';
@@ -9,6 +10,7 @@ const LOCAL_ADMIN_KEY = 'mcsc_admin_info';
 const ITEMS_PER_PAGE = 10;
 
 export default function AdminVerifyNew() {
+  const navigate = useNavigate();
   const [adminInfo, setAdminInfo] = useState(() => {
     try {
       const raw = localStorage.getItem(LOCAL_ADMIN_KEY);
@@ -17,11 +19,12 @@ export default function AdminVerifyNew() {
   });
 
   const [token, setToken] = useState(localStorage.getItem(LOCAL_TOKEN_KEY) || null);
-  const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [allRegs, setAllRegs] = useState([]);
   const [filteredRegs, setFilteredRegs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  
+
   
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState('');
@@ -78,8 +81,10 @@ export default function AdminVerifyNew() {
     setMessage('');
     try {
       const res = await adminFetchRegistrations(token);
-      setAllRegs(res?.registrations || []);
-      setFilteredRegs(res?.registrations || []);
+      // Only show pending registrations
+      const pendingRegs = (res?.registrations || []).filter(reg => !reg.approved);
+      setAllRegs(pendingRegs);
+      setFilteredRegs(pendingRegs);
     } catch (err) {
       setMessage(err.message || 'Failed to load');
       setAllRegs([]);
@@ -89,24 +94,19 @@ export default function AdminVerifyNew() {
     }
   }
 
-  async function handleLogin(e) {
-    e.preventDefault();
-    if (!credentials.username || !credentials.password) return setMessage('Fill both fields');
-    setLoading(true);
+  async function onApprove(id) {
+    setMessage('Approving...');
     try {
-      const res = await adminLogin(credentials.username, credentials.password);
-      setToken(res.token);
-      setAdminInfo(res.admin);
-      localStorage.setItem(LOCAL_TOKEN_KEY, res.token);
-      localStorage.setItem(LOCAL_ADMIN_KEY, JSON.stringify(res.admin));
-      setCredentials({ username: '', password: '' });
-      setMessage(`Welcome, ${res.admin.username}!`);
+      await adminApproveRegistration(id, token);
+      setMessage('Registration approved successfully!');
+      // Reload registrations to remove the approved one
+      loadRegs();
     } catch (err) {
-      setMessage(err.message || 'Login failed');
-    } finally {
-      setLoading(false);
+      setMessage(err.message || 'Failed to approve registration');
     }
   }
+
+
 
   function handleLogout() {
     setToken(null); setAdminInfo(null); setAllRegs([]); setFilteredRegs([]);
@@ -150,46 +150,10 @@ export default function AdminVerifyNew() {
   const uniqueDepartments = [...new Set(allRegs.map(r => r.department))].filter(Boolean);
   const uniqueBuildings = [...new Set(allRegs.map(r => r.building))].filter(Boolean);
 
-  // LOGIN SCREEN
+  // Redirect to login if not authenticated
   if (!token || !adminInfo) {
-    return (
-      <div className="admin-verify-login">
-        <div className="login-card">
-          <div className="login-header">
-            <div className="login-icon">
-              <Building size={48} />
-            </div>
-            <h2>Building Admin Login</h2>
-            <p>Verify student registrations for your building</p>
-          </div>
-          <form onSubmit={handleLogin} className="login-form">
-            <div className="form-group">
-              <label>Username</label>
-              <input 
-                value={credentials.username} 
-                onChange={e => setCredentials(p => ({...p, username: e.target.value}))}
-                placeholder="Enter username" 
-                required 
-              />
-            </div>
-            <div className="form-group">
-              <label>Password</label>
-              <input 
-                type="password" 
-                value={credentials.password} 
-                onChange={e => setCredentials(p => ({...p, password: e.target.value}))}
-                placeholder="Enter password" 
-                required 
-              />
-            </div>
-            <button type="submit" className="login-btn" disabled={loading}>
-              {loading ? 'Logging in...' : 'Login'}
-            </button>
-          </form>
-          {message && <div className="login-message">{message}</div>}
-        </div>
-      </div>
-    );
+    navigate('/admin/login');
+    return null;
   }
 
   // MAIN UI
@@ -197,8 +161,14 @@ export default function AdminVerifyNew() {
     <div className="admin-verify-page">
       <div className="admin-header">
         <div className="header-left">
-          <h1>Registration Verification</h1>
-          <p>Building: <strong>{adminInfo.building}</strong> • Admin: <strong>{adminInfo.username}</strong></p>
+          <button className="back-to-dashboard-btn" onClick={() => navigate('/admin/dashboard')}>
+            <ArrowLeft size={20} />
+            Back to Dashboard
+          </button>
+          <div>
+            <h1>Registration Verification</h1>
+            <p>Building: <strong>{adminInfo.building}</strong> • Admin: <strong>{adminInfo.username}</strong></p>
+          </div>
         </div>
         <button className="logout-btn" onClick={handleLogout}>
           <LogOut size={18} />

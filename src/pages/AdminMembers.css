@@ -886,3 +886,30 @@
     border-radius: 0;
   }
 }
+
+/* Back to Dashboard Button */
+.back-to-dashboard-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--accent-primary);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 1rem;
+}
+
+.back-to-dashboard-btn:hover {
+  background: rgba(59, 130, 246, 0.2);
+  transform: translateX(-4px);
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}

@@ -111,9 +111,9 @@ export default function Home() {
           <span className="ticker-badge">🔥 HOT DEAL</span>
           <span className="ticker-separator">|</span>
           <span className="ticker-headline">
-            <strong>Club Jacket Pre-Order:</strong> Get ৳300 OFF! 
+            <strong>Club Jacket Pre-Order:</strong> Get ৳349 OFF! 
             <span className="price-inline">
-              <span className="strike-inline">৳1299</span> → <span className="highlight-inline">৳999</span>
+              <span className="strike-inline">৳1299</span> → <span className="highlight-inline">৳950</span>
             </span>
             + FREE Gifts 🎁
           </span>

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Download, CheckCircle, XCircle, Package, Clock, Truck, X, Eye, EyeOff, LogOut } from 'lucide-react';
+import { Download, CheckCircle, XCircle, Package, Clock, Truck, X, Eye, EyeOff, LogOut, ArrowLeft } from 'lucide-react';
 import useAuth from '../lib/useAuth';
 import { useNavigate } from 'react-router-dom';
 import './AdminJacketOrders.css';
 
 const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
+
+const JACKET_ORDERS_PASSWORD = process.env.REACT_APP_JACKET_ORDERS_PASSWORD || 'jacket2024';
 
 export default function AdminJacketOrders() {
   const { user, loading: authLoading } = useAuth();
@@ -20,20 +22,38 @@ export default function AdminJacketOrders() {
   const [exportStatus, setExportStatus] = useState(null);
   const [exportFileName, setExportFileName] = useState('');
   const [privacyMode, setPrivacyMode] = useState(true); // Hide sensitive info by default
+  
+  // Password protection state
+  const [isPasswordVerified, setIsPasswordVerified] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    // Check admin authentication first
-    const isAdminAuthenticated = sessionStorage.getItem('adminAuthenticated');
-    if (!isAdminAuthenticated) {
-      navigate('/admin/login');
+    // Check if Main Building admin
+    const adminInfo = localStorage.getItem('mcsc_admin_info');
+    if (!adminInfo) {
+      navigate('/admin/dashboard');
+      return;
+    }
+    
+    try {
+      const parsed = JSON.parse(adminInfo);
+      if (parsed.building?.toLowerCase().trim() !== 'main building') {
+        navigate('/admin/dashboard');
+        return;
+      }
+    } catch (err) {
+      navigate('/admin/dashboard');
       return;
     }
 
-    // Then check user authentication
-    if (!authLoading && !user) {
-      navigate('/login');
+    // Check if password already verified in session
+    const verified = sessionStorage.getItem('jacketOrdersVerified');
+    if (verified === 'true') {
+      setIsPasswordVerified(true);
     }
-  }, [user, authLoading, navigate]);
+  }, [navigate]);
 
   useEffect(() => {
     if (user) {
@@ -41,9 +61,22 @@ export default function AdminJacketOrders() {
     }
   }, [user, filter]);
 
+  const handlePasswordSubmit = (e) => {
+    e.preventDefault();
+    if (passwordInput === JACKET_ORDERS_PASSWORD) {
+      setIsPasswordVerified(true);
+      sessionStorage.setItem('jacketOrdersVerified', 'true');
+      setPasswordError('');
+    } else {
+      setPasswordError('Incorrect password. Please try again.');
+      setPasswordInput('');
+    }
+  };
+
   const handleAdminLogout = () => {
     if (window.confirm('Are you sure you want to logout from admin panel?')) {
       sessionStorage.removeItem('adminAuthenticated');
+      sessionStorage.removeItem('jacketOrdersVerified');
       navigate('/admin/login');
     }
   };
@@ -378,6 +411,58 @@ export default function AdminJacketOrders() {
     );
   }
 
+  // Password verification screen
+  if (!isPasswordVerified) {
+    return (
+      <div className="admin-orders-page">
+        <div className="password-verification-screen">
+          <div className="password-card">
+            <div className="password-icon">
+              <Package size={48} />
+            </div>
+            <h2>Jacket Orders Access</h2>
+            <p>This section requires an additional password</p>
+            
+            <form onSubmit={handlePasswordSubmit} className="password-form">
+              <div className="password-input-group">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  placeholder="Enter password"
+                  autoFocus
+                  required
+                />
+                <button
+                  type="button"
+                  className="toggle-password"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+              
+              {passwordError && (
+                <div className="password-error">{passwordError}</div>
+              )}
+              
+              <button type="submit" className="verify-btn">
+                Verify Access
+              </button>
+            </form>
+            
+            <button 
+              className="back-btn"
+              onClick={() => navigate('/admin/dashboard')}
+            >
+              ← Back to Dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="admin-orders-page">
       <div className="admin-orders-header">
@@ -387,6 +472,17 @@ export default function AdminJacketOrders() {
         </div>
         <div className="header-actions">
           <div className="action-buttons-row">
+            <button 
+              className="back-to-dashboard-btn"
+              onClick={() => {
+                sessionStorage.removeItem('jacketOrdersVerified');
+                navigate('/admin/dashboard');
+              }}
+              title="Return to dashboard"
+            >
+              <ArrowLeft size={18} />
+              Back to Dashboard
+            </button>
             <button 
               className={`privacy-toggle-btn ${privacyMode ? 'active' : ''}`}
               onClick={() => setPrivacyMode(!privacyMode)}

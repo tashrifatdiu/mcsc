@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { adminLogin, adminFetchMembers, adminFetchNonMembers, adminFetchMemberDetails, adminFetchUserDetails } from '../api';
-import { Search, Users, UserCheck, Info, X, Mail, Phone, Building, BookOpen, LogOut, FileText, GraduationCap, ShoppingBag, Calendar, Package } from 'lucide-react';
+import { Search, Users, UserCheck, Info, X, Mail, Phone, Building, BookOpen, LogOut, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './AdminMembers.css';
 
@@ -176,27 +176,19 @@ export default function AdminMembers() {
     <div className="admin-members-page">
       <div className="admin-header">
         <div className="header-left">
-          <h1>Members Management</h1>
-          <p>Admin: <strong>{adminInfo.username}</strong></p>
+          <button className="back-to-dashboard-btn" onClick={() => navigate('/admin/dashboard')}>
+            <ArrowLeft size={20} />
+            Back to Dashboard
+          </button>
+          <div>
+            <h1>Members Management</h1>
+            <p>Admin: <strong>{adminInfo.username}</strong></p>
+          </div>
         </div>
-        <div className="header-actions">
-          <button className="nav-btn" onClick={() => navigate('/admin-verify')}>
-            <UserCheck size={18} />
-            Registrations
-          </button>
-          <button className="nav-btn" onClick={() => navigate('/admin/journals')}>
-            <FileText size={18} />
-            Journals
-          </button>
-          <button className="nav-btn" onClick={() => navigate('/admin/courses')}>
-            <GraduationCap size={18} />
-            Courses
-          </button>
-          <button className="logout-btn" onClick={handleLogout}>
-            <LogOut size={18} />
-            Logout
-          </button>
-        </div>
+        <button className="logout-btn" onClick={handleLogout}>
+          <LogOut size={18} />
+          Logout
+        </button>
       </div>
 
       {message && (

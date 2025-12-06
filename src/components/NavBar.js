@@ -55,6 +55,8 @@ const NavBar = () => {
     };
   }, []);
 
+
+
   useEffect(() => {
     function onDocClick(e) {
       if (!navRef.current?.contains(e.target)) {
@@ -165,7 +167,6 @@ const NavBar = () => {
           <span className="fire-badge">🔥</span>
         </Link>
         <Link to="/registration-request" className="nav-link" onClick={handleLinkClick}>Register</Link>
-        <Link to="/admin-verify" className="nav-link" onClick={handleLinkClick}>Verify</Link>
 
         {!user && (
           <>

@@ -329,13 +329,13 @@ export default function Merchandise() {
           <div className="notice-content">
             <h3>🔥 Pre-Order Special Offer!</h3>
             <p className="notice-english">
-              <strong>Original Price: ৳1299 → Pre-Order Price: ৳999 (Save ৳300!)</strong><br/>
+              <strong>Original Price: ৳1299 → Pre-Order Price: ৳950 (Save ৳349!)</strong><br/>
               Each student will receive <strong>ONE nameplate</strong> and <strong>ONE cort pic</strong> with their jacket pre-order, 
               regardless of how many jackets they order. To ensure everyone gets their free gifts, 
               <strong> please pre-order your jacket using your own account</strong>.
             </p>
             <p className="notice-bangla">
-              <strong>মূল মূল্য: ৳১২৯৯ → প্রি-অর্ডার মূল্য: ৳৯৯৯ (সাশ্রয় ৳৩০০!)</strong><br/>
+              <strong>মূল মূল্য: ৳১২৯৯ → প্রি-অর্ডার মূল্য: ৳৯৫০ (সাশ্রয় ৳৩৪৯!)</strong><br/>
               প্রতিটি শিক্ষার্থী তাদের জ্যাকেট প্রি-অর্ডারের সাথে <strong>একটি নেমপ্লেট</strong> এবং <strong>একটি কর্ট পিক</strong> পাবেন, 
               তারা যতগুলি জ্যাকেট অর্ডার করুক না কেন। সবাই যাতে তাদের ফ্রি উপহার পায় তা নিশ্চিত করতে, 
               <strong> অনুগ্রহ করে আপনার নিজের অ্যাকাউন্ট ব্যবহার করে আপনার জ্যাকেট প্রি-অর্ডার করুন</strong>।

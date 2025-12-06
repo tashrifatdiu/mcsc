@@ -422,7 +422,9 @@ export default function Footer() {
           <div className="footer-bottom">
             <div><p>© 2024 Science Club. All rights reserved.</p></div>
             
-           
+            <div className="footer-links">
+              <a href="/admin/login">Admin</a>
+            </div>
 
             <div className="privacy-terms">
               <p>Privacy: We ensure that all member data is kept confidential and used solely for club purposes.</p>

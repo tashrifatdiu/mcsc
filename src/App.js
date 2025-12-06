@@ -7,7 +7,7 @@ import Home from './pages/Home';
 import Club from './pages/Club';
 import Olympiad from './pages/Olympiad';
 import RegistrationRequest from './pages/RegistrationRequest';
-import AdminVerify from './pages/AdminVerify';
+import AdminVerifyNew from './pages/AdminVerifyNew';
 import AdminJournals from './pages/AdminJournals';
 import AdminJournalView from './pages/AdminJournalView';
 import Courses from './pages/Courses';
@@ -32,8 +32,11 @@ import NotAuthorized from './pages/NotAuthorized';
 import CertificateManagement from './pages/CertificateManagement';
 import Merchandise from './pages/Merchandise';
 import AdminJacketOrders from './pages/AdminJacketOrders';
-import AdminLogin from './pages/AdminLogin';
 import UserProfile from './pages/UserProfile';
+import AdminEvents from './pages/AdminEvents';
+import AdminCoreMembers from './pages/AdminCoreMembers';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminLoginPage from './pages/AdminLoginPage';
 
 function App() {
   return (
@@ -47,7 +50,9 @@ function App() {
     <Route path="/club" element={<Club />} />
     <Route path="/olympiad" element={<Olympiad />} />
     <Route path="/registration-request" element={<RegistrationRequest />} />
-    <Route path="/admin-verify" element={<AdminVerify />} />
+    <Route path="/admin/login" element={<AdminLoginPage />} />
+    <Route path="/admin/dashboard" element={<AdminDashboard />} />
+    <Route path="/admin-verify" element={<AdminVerifyNew />} />
     <Route path="/admin/members" element={<AdminMembers />} />
     <Route path="/admin/journals" element={<AdminJournals />} />
     <Route path="/dashboard" element={<Dashboard />} />
@@ -70,8 +75,9 @@ function App() {
           <Route path="/not-authorized" element={<NotAuthorized />} />
           <Route path="/certificate-management" element={<CertificateManagement />} />
           <Route path="/merchandise" element={<Merchandise />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/jacket-orders" element={<AdminJacketOrders />} />
+          <Route path="/admin/events" element={<AdminEvents />} />
+          <Route path="/admin/core-members" element={<AdminCoreMembers />} />
           <Route path="/profile" element={<UserProfile />} />
           {/* existing routes */}
         </Routes>
