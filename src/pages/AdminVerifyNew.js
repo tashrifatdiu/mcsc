@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { adminLogin, adminFetchRegistrations, adminApproveRegistration } from '../api';
-import { Search, Filter, ChevronLeft, ChevronRight, CheckCircle, User, Mail, Phone, Building, BookOpen, LogOut, X, FileText, GraduationCap, XCircle, Users } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Search, Filter, ChevronLeft, ChevronRight, CheckCircle, User, Mail, Phone, Building, BookOpen, LogOut } from 'lucide-react';
 import './AdminVerifyNew.css';
 
 const LOCAL_TOKEN_KEY = 'mcsc_admin_token';
 const LOCAL_ADMIN_KEY = 'mcsc_admin_info';
 
-const ITEMS_PER_PAGE = 12;
+const ITEMS_PER_PAGE = 10;
 
-const AdminVerify = () => {
-  const navigate = useNavigate();
+export default function AdminVerifyNew() {
   const [adminInfo, setAdminInfo] = useState(() => {
     try {
       const raw = localStorage.getItem(LOCAL_ADMIN_KEY);
@@ -117,6 +115,17 @@ const AdminVerify = () => {
     setMessage('Logged out');
   }
 
+  async function onApprove(id) {
+    setMessage('Approving...');
+    try {
+      await adminApproveRegistration(id, token);
+      setMessage('Approved!');
+      loadRegs();
+    } catch (err) {
+      setMessage(err.message || 'Failed');
+    }
+  }
+
   const clearFilters = () => {
     setFilters({
       class: '',
@@ -140,17 +149,6 @@ const AdminVerify = () => {
   const uniqueVersions = [...new Set(allRegs.map(r => r.version))].filter(Boolean);
   const uniqueDepartments = [...new Set(allRegs.map(r => r.department))].filter(Boolean);
   const uniqueBuildings = [...new Set(allRegs.map(r => r.building))].filter(Boolean);
-
-  async function onApprove(id) {
-    setMessage('Approving...');
-    try {
-      await adminApproveRegistration(id, token);
-      setMessage('Approved!');
-      loadRegs();
-    } catch (err) {
-      setMessage(err.message || 'Failed');
-    }
-  }
 
   // LOGIN SCREEN
   if (!token || !adminInfo) {
@@ -202,28 +200,10 @@ const AdminVerify = () => {
           <h1>Registration Verification</h1>
           <p>Building: <strong>{adminInfo.building}</strong> • Admin: <strong>{adminInfo.username}</strong></p>
         </div>
-        <div className="header-actions">
-          {adminInfo.building === 'main building' && (
-            <button className="nav-btn" onClick={() => navigate('/admin/members')}>
-              <Users size={18} />
-              Members
-            </button>
-          )}
-          <button className="nav-btn" onClick={() => navigate('/admin/journals')}>
-            <FileText size={18} />
-            Journals
-          </button>
-          {adminInfo.building === 'main building' && (
-            <button className="nav-btn" onClick={() => navigate('/admin/courses')}>
-              <GraduationCap size={18} />
-              Courses
-            </button>
-          )}
-          <button className="logout-btn" onClick={handleLogout}>
-            <LogOut size={18} />
-            Logout
-          </button>
-        </div>
+        <button className="logout-btn" onClick={handleLogout}>
+          <LogOut size={18} />
+          Logout
+        </button>
       </div>
 
       {message && (
@@ -345,29 +325,13 @@ const AdminVerify = () => {
                 </div>
 
                 <div className="card-footer">
-                  {reg.approved ? (
-                    <div className="approved-badge">
-                      <CheckCircle size={18} />
-                      Approved - Club Member
-                    </div>
-                  ) : (
-                    <div className="action-buttons">
-                      <button 
-                        className="reject-btn"
-                        onClick={() => onApprove(reg._id)}
-                      >
-                        <XCircle size={18} />
-                        Reject
-                      </button>
-                      <button 
-                        className="approve-btn"
-                        onClick={() => onApprove(reg._id)}
-                      >
-                        <CheckCircle size={18} />
-                        Accept
-                      </button>
-                    </div>
-                  )}
+                  <button 
+                    className="approve-btn"
+                    onClick={() => onApprove(reg._id)}
+                  >
+                    <CheckCircle size={18} />
+                    Approve
+                  </button>
                 </div>
               </div>
             ))}
@@ -385,24 +349,14 @@ const AdminVerify = () => {
               </button>
               
               <div className="page-numbers">
-                {Array.from({ length: Math.min(totalPages, 10) }, (_, i) => {
-                  // Show first 3, last 3, and current page with neighbors
-                  const page = i + 1;
-                  if (totalPages <= 10) return page;
-                  if (page <= 3 || page > totalPages - 3 || Math.abs(page - currentPage) <= 1) {
-                    return page;
-                  }
-                  return null;
-                }).filter(Boolean).map((page, idx, arr) => (
-                  <React.Fragment key={page}>
-                    {idx > 0 && page - arr[idx - 1] > 1 && <span className="page-ellipsis">...</span>}
-                    <button
-                      className={`page-number ${page === currentPage ? 'active' : ''}`}
-                      onClick={() => setCurrentPage(page)}
-                    >
-                      {page}
-                    </button>
-                  </React.Fragment>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    className={`page-number ${page === currentPage ? 'active' : ''}`}
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </button>
                 ))}
               </div>
 
@@ -420,6 +374,4 @@ const AdminVerify = () => {
       )}
     </div>
   );
-};
-
-export default AdminVerify;
+}

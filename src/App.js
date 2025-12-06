@@ -12,6 +12,7 @@ import AdminJournals from './pages/AdminJournals';
 import AdminJournalView from './pages/AdminJournalView';
 import Courses from './pages/Courses';
 import AdminCourses from './pages/AdminCourses';
+import AdminMembers from './pages/AdminMembers';
 import Dashboard from './pages/Dashboard';
 import JournalEditor from './pages/JournalEditor';
 import JournalList from './pages/JournalList';
@@ -30,6 +31,9 @@ import CoursePage from './pages/CoursePage';
 import NotAuthorized from './pages/NotAuthorized';
 import CertificateManagement from './pages/CertificateManagement';
 import Merchandise from './pages/Merchandise';
+import AdminJacketOrders from './pages/AdminJacketOrders';
+import AdminLogin from './pages/AdminLogin';
+import UserProfile from './pages/UserProfile';
 
 function App() {
   return (
@@ -44,6 +48,7 @@ function App() {
     <Route path="/olympiad" element={<Olympiad />} />
     <Route path="/registration-request" element={<RegistrationRequest />} />
     <Route path="/admin-verify" element={<AdminVerify />} />
+    <Route path="/admin/members" element={<AdminMembers />} />
     <Route path="/admin/journals" element={<AdminJournals />} />
     <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/journal" element={<JournalList />} />
@@ -65,6 +70,9 @@ function App() {
           <Route path="/not-authorized" element={<NotAuthorized />} />
           <Route path="/certificate-management" element={<CertificateManagement />} />
           <Route path="/merchandise" element={<Merchandise />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/jacket-orders" element={<AdminJacketOrders />} />
+          <Route path="/profile" element={<UserProfile />} />
           {/* existing routes */}
         </Routes>
       </main>

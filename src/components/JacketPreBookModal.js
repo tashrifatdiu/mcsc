@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { X, CheckCircle } from 'lucide-react';
 import './JacketPreBookModal.css';
 
-export default function JacketPreBookModal({ jacket, user, profile, onClose, onSuccess }) {
+export default function JacketPreBookModal({ jacket, preselectedSize, user, profile, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
-    size: jacket.sizes[0],
+    size: preselectedSize || jacket.sizes[0],
     transactionId: '',
     bkashNumber: '',
     deliveryAddress: '',
@@ -39,7 +39,7 @@ export default function JacketPreBookModal({ jacket, user, profile, onClose, onS
           userPhone: profile?.whatsapp || '',
           jacketType: jacket.version,
           size: formData.size,
-          amount: 950,
+          amount: 999,
           transactionId: formData.transactionId,
           bkashNumber: formData.bkashNumber,
           studentProfile: profile ? {
@@ -97,7 +97,7 @@ export default function JacketPreBookModal({ jacket, user, profile, onClose, onS
         <div className="payment-instructions">
           <h3>Payment Instructions:</h3>
           <ol>
-            <li>Send <strong>৳950</strong> to bKash: <strong>{BKASH_NUMBER}</strong></li>
+            <li>Send <strong>৳999</strong> to bKash: <strong>{BKASH_NUMBER}</strong></li>
             <li>Copy the Transaction ID from bKash</li>
             <li>Paste it below and submit</li>
           </ol>
@@ -122,7 +122,7 @@ export default function JacketPreBookModal({ jacket, user, profile, onClose, onS
             <label>Amount</label>
             <input
               type="text"
-              value="৳950"
+              value="৳999"
               readOnly
               className="readonly-input"
             />

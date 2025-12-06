@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Plus, Minus, Trash2, Package, X, LogIn } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Trash2, Package, X, LogIn, Clock, CheckCircle, XCircle, Truck } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import useAuth from '../lib/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -20,7 +20,8 @@ const ALL_PRODUCTS = {
     {
       id: 'club-jacket-english',
       name: 'Club Jacket (English Version)',
-      price: 950,
+      price: 999,
+      originalPrice: 1299,
       image: jacketEnglishFront,
       imageBack: jacketEnglishBack,
       description: 'Premium quality club jacket with embroidered logo - English Version',
@@ -35,14 +36,17 @@ const ALL_PRODUCTS = {
       image: nameplateEnglish,
       description: 'Personalized club nameplate - English Version',
       sizes: ['One Size'],
-      version: 'english'
+      version: 'english',
+      disabled: true,
+      disabledMessage: 'Currently unavailable - FREE with Jacket Pre-Order'
     }
   ],
   bangla: [
     {
       id: 'club-jacket-bangla',
       name: 'ক্লাব জ্যাকেট (বাংলা ভার্সন)',
-      price: 950,
+      price: 999,
+      originalPrice: 1299,
       image: jacketBanglaFront,
       imageBack: jacketBanglaBack,
       description: 'প্রিমিয়াম মানের ক্লাব জ্যাকেট এমব্রয়ডারি লোগো সহ - বাংলা ভার্সন',
@@ -57,7 +61,9 @@ const ALL_PRODUCTS = {
       image: nameplateBangla,
       description: 'ব্যক্তিগতকৃত ক্লাব নেমপ্লেট - বাংলা ভার্সন',
       sizes: ['One Size'],
-      version: 'bangla'
+      version: 'bangla',
+      disabled: true,
+      disabledMessage: 'বর্তমানে অনুপলব্ধ - জ্যাকেট প্রি-অর্ডারের সাথে ফ্রি'
     }
   ],
   universal: [
@@ -70,7 +76,10 @@ const ALL_PRODUCTS = {
       description: 'Official club cort pic badge - Universal for all versions',
       descriptionBangla: 'অফিশিয়াল ক্লাব কর্ট পিক ব্যাজ - সকল ভার্সনের জন্য',
       sizes: ['One Size'],
-      version: 'universal'
+      version: 'universal',
+      disabled: true,
+      disabledMessage: 'Currently unavailable - FREE with Jacket Pre-Order',
+      disabledMessageBangla: 'বর্তমানে অনুপলব্ধ - জ্যাকেট প্রি-অর্ডারের সাথে ফ্রি'
     }
   ]
 };
@@ -82,7 +91,11 @@ export default function Merchandise() {
   const [showCart, setShowCart] = useState(false);
   const [profile, setProfile] = useState(null);
   const [preBookJacket, setPreBookJacket] = useState(null);
+  const [preBookSize, setPreBookSize] = useState(null);
   const [products, setProducts] = useState([]);
+  const [orderHistory, setOrderHistory] = useState([]);
+  const [showOrderHistory, setShowOrderHistory] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [orderForm, setOrderForm] = useState({
     name: '',
     email: '',
@@ -97,6 +110,8 @@ export default function Merchandise() {
     let mounted = true;
 
     async function loadProfile() {
+      setLoading(true);
+      
       if (user && user.id) {
         try {
           const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
@@ -121,10 +136,19 @@ export default function Merchandise() {
               phone: data.profile?.whatsapp || ''
             }));
           }
+
+          // Load order history
+          const ordersRes = await fetch(`${API_BASE}/api/jacket-preorders/user/${user.id}`);
+          if (ordersRes.ok && mounted) {
+            const ordersData = await ordersRes.json();
+            setOrderHistory(ordersData.preOrders || []);
+          }
         } catch (err) {
           console.warn('Failed to load profile', err);
           // Default to all products if profile fetch fails
           setProducts([...ALL_PRODUCTS.english, ...ALL_PRODUCTS.universal]);
+        } finally {
+          if (mounted) setLoading(false);
         }
       } else if (user) {
         // User logged in but no profile - show all products
@@ -134,9 +158,11 @@ export default function Merchandise() {
           name: user.user_metadata?.full_name || '',
           email: user.email || ''
         }));
-      } else {
-        // Guest user - show all products
+        setLoading(false);
+      } else if (!authLoading) {
+        // Guest user - show all products (only after auth check is complete)
         setProducts([...ALL_PRODUCTS.english, ...ALL_PRODUCTS.bangla, ...ALL_PRODUCTS.universal]);
+        setLoading(false);
       }
     }
 
@@ -265,6 +291,17 @@ export default function Merchandise() {
     }
   };
 
+  if (loading || authLoading) {
+    return (
+      <div className="merchandise-page">
+        <div className="merchandise-loading">
+          <div className="spinner"></div>
+          <p>Loading products...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="merchandise-page">
       <div className="merchandise-header">
@@ -289,6 +326,26 @@ export default function Merchandise() {
       )}
 
       <div className="merchandise-container">
+        {/* Important Notice about Free Gifts */}
+        <div className="gift-policy-notice">
+          <div className="notice-icon">🎁</div>
+          <div className="notice-content">
+            <h3>🔥 Pre-Order Special Offer!</h3>
+            <p className="notice-english">
+              <strong>Original Price: ৳1299 → Pre-Order Price: ৳999 (Save ৳300!)</strong><br/>
+              Each student will receive <strong>ONE nameplate</strong> and <strong>ONE cort pic</strong> with their jacket pre-order, 
+              regardless of how many jackets they order. To ensure everyone gets their free gifts, 
+              <strong> please pre-order your jacket using your own account</strong>.
+            </p>
+            <p className="notice-bangla">
+              <strong>মূল মূল্য: ৳১২৯৯ → প্রি-অর্ডার মূল্য: ৳৯৯৯ (সাশ্রয় ৳৩০০!)</strong><br/>
+              প্রতিটি শিক্ষার্থী তাদের জ্যাকেট প্রি-অর্ডারের সাথে <strong>একটি নেমপ্লেট</strong> এবং <strong>একটি কর্ট পিক</strong> পাবেন, 
+              তারা যতগুলি জ্যাকেট অর্ডার করুক না কেন। সবাই যাতে তাদের ফ্রি উপহার পায় তা নিশ্চিত করতে, 
+              <strong> অনুগ্রহ করে আপনার নিজের অ্যাকাউন্ট ব্যবহার করে আপনার জ্যাকেট প্রি-অর্ডার করুন</strong>।
+            </p>
+          </div>
+        </div>
+
         {profile && (
           <div className="version-badge">
             <span>Showing products for: </span>
@@ -305,7 +362,10 @@ export default function Merchandise() {
                 key={product.id} 
                 product={product} 
                 onAddToCart={addToCart}
-                onPreBook={(jacket) => setPreBookJacket(jacket)}
+                onPreBook={(jacket, size) => {
+                  setPreBookJacket(jacket);
+                  setPreBookSize(size);
+                }}
                 user={user}
                 userVersion={profile?.version}
               />
@@ -318,19 +378,85 @@ export default function Merchandise() {
             <div className="cart-header">
               <h2>
                 <ShoppingCart size={20} />
-                Shopping Cart
+                {showOrderHistory ? 'Order History' : 'Shopping Cart'}
               </h2>
               <button onClick={() => setShowCart(false)} className="close-cart-btn">
                 <X size={20} />
               </button>
             </div>
 
-            {cart.length === 0 ? (
+            {user && (
+              <div className="cart-tabs">
+                <button 
+                  className={!showOrderHistory ? 'active' : ''}
+                  onClick={() => setShowOrderHistory(false)}
+                >
+                  <ShoppingCart size={16} />
+                  Cart ({getTotalItems()})
+                </button>
+                <button 
+                  className={showOrderHistory ? 'active' : ''}
+                  onClick={() => setShowOrderHistory(true)}
+                >
+                  <Package size={16} />
+                  Orders ({orderHistory.length})
+                </button>
+              </div>
+            )}
+
+            {showOrderHistory ? (
+              <div className="order-history-section">
+                {orderHistory.length === 0 ? (
+                  <div className="empty-cart">
+                    <Package size={48} />
+                    <p>No orders yet</p>
+                  </div>
+                ) : (
+                  <div className="order-history-list">
+                    {orderHistory.map(order => (
+                      <div key={order._id} className="history-order-card">
+                        <div className="history-order-header">
+                          <span className="order-date-small">
+                            {new Date(order.createdAt).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </span>
+                          <span className={`status-badge-small status-${order.status}`}>
+                            {order.status}
+                          </span>
+                        </div>
+                        <div className="history-order-items">
+                          {order.items && order.items.length > 0 ? (
+                            order.items.map((item, idx) => (
+                              <div key={idx} className="history-item">
+                                <span>{item.jacketType} ({item.size}) ×{item.quantity}</span>
+                                <span>৳{item.pricePerUnit * item.quantity}</span>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="history-item">
+                              <span>{order.jacketType} ({order.size})</span>
+                              <span>৳{order.amount}</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="history-order-total">
+                          <strong>Total:</strong>
+                          <strong>৳{order.totalAmount || order.amount}</strong>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : !showOrderHistory && cart.length === 0 ? (
               <div className="empty-cart">
                 <Package size={48} />
                 <p>Your cart is empty</p>
               </div>
-            ) : (
+            ) : !showOrderHistory ? (
               <>
                 <div className="cart-items">
                   {cart.map((item, index) => (
@@ -514,17 +640,23 @@ export default function Merchandise() {
                 </form>
                 )}
               </>
-            )}
+            ) : null}
           </div>
         )}
         {preBookJacket && (
           <JacketPreBookModal
             jacket={preBookJacket}
+            preselectedSize={preBookSize}
             user={user}
             profile={profile}
-            onClose={() => setPreBookJacket(null)}
+            onClose={() => {
+              setPreBookJacket(null);
+              setPreBookSize(null);
+            }}
             onSuccess={() => {
               setMessage({ type: 'success', text: 'Pre-order submitted successfully!' });
+              setPreBookJacket(null);
+              setPreBookSize(null);
             }}
           />
         )}
@@ -544,6 +676,10 @@ function ProductCard({ product, onAddToCart, onPreBook, user, userVersion }) {
   const displayDescription = userVersion === 'bangla' && product.descriptionBangla 
     ? product.descriptionBangla 
     : product.description;
+    
+  const displayDisabledMessage = userVersion === 'bangla' && product.disabledMessageBangla 
+    ? product.disabledMessageBangla 
+    : product.disabledMessage;
 
   // Import gift images for display
   const nameplateEnglish = require('./images/clubNamePlateEnglishVersion.png');
@@ -551,7 +687,7 @@ function ProductCard({ product, onAddToCart, onPreBook, user, userVersion }) {
   const cortPin = require('./images/cort pin.png');
 
   return (
-    <div className="product-card">
+    <div className={`product-card ${product.disabled ? 'disabled-product' : ''}`}>
       <div 
         className="product-image"
         onMouseEnter={() => product.imageBack && setShowBackImage(true)}
@@ -580,6 +716,15 @@ function ProductCard({ product, onAddToCart, onPreBook, user, userVersion }) {
             </div>
           </div>
         )}
+        
+        {/* Disabled overlay */}
+        {product.disabled && (
+          <div className="disabled-overlay">
+            <span className="disabled-badge">
+              {userVersion === 'bangla' ? 'অনুপলব্ধ' : 'Unavailable'}
+            </span>
+          </div>
+        )}
       </div>
       <div className="product-info">
         <h3>{displayName}</h3>
@@ -587,7 +732,17 @@ function ProductCard({ product, onAddToCart, onPreBook, user, userVersion }) {
         {product.gift && (
           <p className="product-gift">{product.gift}</p>
         )}
-        <p className="product-price">৳{product.price}</p>
+        <div className="product-pricing">
+          {product.originalPrice && (
+            <span className="original-price">৳{product.originalPrice}</span>
+          )}
+          <p className="product-price">৳{product.price}</p>
+          {product.originalPrice && (
+            <span className="discount-badge">
+              {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
+            </span>
+          )}
+        </div>
         
         {product.version && (
           <span className={`version-tag ${product.version}`}>
@@ -595,23 +750,34 @@ function ProductCard({ product, onAddToCart, onPreBook, user, userVersion }) {
           </span>
         )}
         
-        <div className="product-size">
-          <label>{userVersion === 'bangla' ? 'সাইজ:' : 'Size:'}</label>
-          <select 
-            value={selectedSize} 
-            onChange={(e) => setSelectedSize(e.target.value)}
-          >
-            {product.sizes.map(size => (
-              <option key={size} value={size}>{size}</option>
-            ))}
-          </select>
-        </div>
+        {/* Show disabled message or size selector */}
+        {product.disabled ? (
+          <div className="disabled-message">
+            <p>{displayDisabledMessage}</p>
+          </div>
+        ) : (
+          <div className="product-size">
+            <label>{userVersion === 'bangla' ? 'সাইজ:' : 'Size:'}</label>
+            <select 
+              value={selectedSize} 
+              onChange={(e) => setSelectedSize(e.target.value)}
+            >
+              {product.sizes.map(size => (
+                <option key={size} value={size}>{size}</option>
+              ))}
+            </select>
+          </div>
+        )}
         
-        {/* Show Pre-Book button for jackets, Add to Cart for others */}
-        {product.id.includes('jacket') ? (
+        {/* Show Pre-Book button for jackets, Add to Cart for others, or disabled state */}
+        {product.disabled ? (
+          <button className="disabled-btn" disabled>
+            {userVersion === 'bangla' ? 'অনুপলব্ধ' : 'Unavailable'}
+          </button>
+        ) : product.id.includes('jacket') ? (
           <button 
             className="prebook-btn"
-            onClick={() => user ? onPreBook(product) : alert('Please login to pre-book')}
+            onClick={() => user ? onPreBook(product, selectedSize) : alert('Please login to pre-book')}
           >
             {userVersion === 'bangla' ? 'প্রি-বুক করুন' : 'Pre-Book Now'}
           </button>

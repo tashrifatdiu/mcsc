@@ -219,3 +219,36 @@ export async function adminDeleteCourse(id) {
   if (!res.ok) throw new Error(data?.error || 'Delete failed');
   return data;
 }
+
+// Members Management API (Main building admin only)
+export async function adminFetchMembers(adminToken) {
+  const headers = adminToken ? { Authorization: `Bearer ${adminToken}` } : {};
+  const res = await fetch(`${API_BASE.replace(/\/$/, '')}/api/admin/members`, { headers });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to fetch members');
+  return data;
+}
+
+export async function adminFetchNonMembers(adminToken) {
+  const headers = adminToken ? { Authorization: `Bearer ${adminToken}` } : {};
+  const res = await fetch(`${API_BASE.replace(/\/$/, '')}/api/admin/non-members`, { headers });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to fetch non-members');
+  return data;
+}
+
+export async function adminFetchMemberDetails(id, adminToken) {
+  const headers = adminToken ? { Authorization: `Bearer ${adminToken}` } : {};
+  const res = await fetch(`${API_BASE.replace(/\/$/, '')}/api/admin/member/${id}/details`, { headers });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to fetch member details');
+  return data;
+}
+
+export async function adminFetchUserDetails(id, adminToken) {
+  const headers = adminToken ? { Authorization: `Bearer ${adminToken}` } : {};
+  const res = await fetch(`${API_BASE.replace(/\/$/, '')}/api/admin/user/${id}/details`, { headers });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to fetch user details');
+  return data;
+}

@@ -1,13 +1,16 @@
 // client/src/pages/JournalList.js
 import React, { useEffect, useState } from 'react';
 import { fetchJournals } from '../apiJournal';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { BookOpen, Plus, FileText, Grid3x3, User, Calendar, List } from 'lucide-react';
 import useAuth from '../lib/useAuth';
+import './JournalList.css';
 
 export default function JournalList() {
   const [journals, setJournals] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const location = useLocation();
 
   useEffect(() => {
     (async () => {
@@ -22,45 +25,127 @@ export default function JournalList() {
     })();
   }, []);
 
+  // Extract text from HTML
+  const getExcerpt = (html, maxLength = 150) => {
+    const text = html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
+  };
+
   return (
-  <div style={{ maxWidth: 980, margin: '20px auto' }} className="page-fade">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ margin: 0 }}>Journal Entries</h2>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Link to="/journal/gallery" className="btn btn-secondary">Gallery</Link>
-          {user ? (
+    <div className="journal-list-page">
+      <div className="journal-header-section">
+        <div className="journal-title-area">
+          <div className="header-title">
+            <BookOpen size={32} />
+            <h1>Journal Entries</h1>
+          </div>
+          <p className="header-subtitle">Explore thoughts, ideas, and stories from our community</p>
+        </div>
+      </div>
+
+      <div className="journal-nav-section">
+        <div className="journal-nav">
+          <Link 
+            to="/journal" 
+            className={`journal-nav-link ${location.pathname === '/journal' ? 'active' : ''}`}
+          >
+            <List size={18} />
+            All Journals
+          </Link>
+          <Link 
+            to="/journal/gallery" 
+            className={`journal-nav-link ${location.pathname === '/journal/gallery' ? 'active' : ''}`}
+          >
+            <Grid3x3 size={18} />
+            Gallery View
+          </Link>
+          {user && (
             <>
-              <Link to="/journal/new" className="btn btn-primary">New Journal</Link>
-              <Link to="/journal/drafts" className="btn btn-secondary">My Drafts</Link>
+              <Link 
+                to="/journal/new" 
+                className={`journal-nav-link ${location.pathname === '/journal/new' ? 'active' : ''}`}
+              >
+                <Plus size={18} />
+                New Journal
+              </Link>
+              <Link 
+                to="/journal/drafts" 
+                className={`journal-nav-link ${location.pathname === '/journal/drafts' ? 'active' : ''}`}
+              >
+                <FileText size={18} />
+                My Drafts
+              </Link>
             </>
-          ) : (
-            <Link to="/login" className="btn btn-ghost">Login to create</Link>
+          )}
+          {!user && (
+            <Link to="/login" className="journal-nav-link">
+              Login to create
+            </Link>
           )}
         </div>
       </div>
+
       {loading ? (
-        <div style={{ display: 'grid', gap: 12 }}>
-          {[1,2,3].map(i => (
-            <div key={i} className="skeleton" style={{ padding:12, borderRadius:10 }}>
-              <div className="skeleton-line" style={{ width: '50%' }} />
-              <div className="skeleton-line" style={{ width: '30%', marginTop:6 }} />
-              <div className="skeleton-block" />
+        <div className="journal-grid">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <div key={i} className="journal-card skeleton-card">
+              <div className="skeleton-title"></div>
+              <div className="skeleton-meta"></div>
+              <div className="skeleton-text"></div>
+              <div className="skeleton-text short"></div>
             </div>
           ))}
         </div>
+      ) : journals.length === 0 ? (
+        <div className="empty-state">
+          <BookOpen size={64} />
+          <h3>No journal entries yet</h3>
+          <p>Be the first to share your thoughts and ideas</p>
+          {user && (
+            <Link to="/journal/new" className="action-btn primary">
+              <Plus size={18} />
+              Create First Journal
+            </Link>
+          )}
+        </div>
       ) : (
-        <div style={{ display:'grid', gap:12 }}>
+        <div className="journal-grid">
           {journals.map(j => (
-            <div key={j._id} className="content-wrap" style={{ padding:12, borderRadius:10 }}>
-              <Link to={`/journal/${j._id}`} className="text-accent" style={{ fontSize:18, fontWeight:700 }}>{j.title}</Link>
-              <div className="text-muted" style={{ marginTop:6 }}>
-                <Link to={`/journal/author/${j.authorSupabaseId || j.authorId || j.author}`} className="text-muted">{j.authorName || j.authorEmail}</Link>
-                {' '}• {new Date(j.createdAt).toLocaleString()}
+            <Link 
+              key={j._id} 
+              to={`/journal/${j._id}`}
+              className="journal-card"
+            >
+              <h3 className="journal-title">{j.title}</h3>
+              
+              <div className="journal-meta">
+                <Link 
+                  to={`/journal/author/${j.authorSupabaseId || j.authorId || j.author}`}
+                  className="author-link"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <User size={14} />
+                  {j.authorName || j.authorEmail}
+                </Link>
+                <span className="date">
+                  <Calendar size={14} />
+                  {new Date(j.publishedAt || j.createdAt).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                  })}
+                </span>
               </div>
-              <div style={{ marginTop:8 }} className="text-primary" dangerouslySetInnerHTML={{ __html: (j.bodyHtml || '').slice(0, 300) + (j.bodyHtml && j.bodyHtml.length > 300 ? '...' : '') }} />
-            </div>
+
+              <p className="journal-excerpt">
+                {getExcerpt(j.bodyHtml || '')}
+              </p>
+
+              <div className="read-more">
+                Read more →
+              </div>
+            </Link>
           ))}
-          {journals.length === 0 && <div>No journal entries yet.</div>}
         </div>
       )}
     </div>

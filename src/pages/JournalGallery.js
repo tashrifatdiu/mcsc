@@ -1,10 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { fetchJournals } from '../apiJournal';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { Grid3x3, User, Calendar, ArrowRight, BookOpen, List, Plus, FileText } from 'lucide-react';
+import useAuth from '../lib/useAuth';
+import './JournalList.css';
 
 export default function JournalGallery() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const location = useLocation();
 
   useEffect(() => {
     (async () => {
@@ -14,44 +19,127 @@ export default function JournalGallery() {
       } catch (err) {
         console.error('gallery fetch err', err);
         setItems([]);
-        // store error for UI (optional)
-        setError && setError(err.message || 'Failed to load gallery');
       } finally {
         setLoading(false);
       }
     })();
   }, []);
 
+  const getExcerpt = (html, maxLength = 120) => {
+    const text = html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
+  };
+
   return (
-    <div style={{ maxWidth: 1200, margin: '20px auto' }}>
-      <h2>Gallery</h2>
-      {loading ? (
-        <div>Loading...</div>
-      ) : (
-        <>
-          {items.length === 0 ? (
-            <div style={{ padding: 20, textAlign: 'center' }}>No published journals yet.</div>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
-              {items.map(j => (
-                <article key={j._id} style={{ background: '#333', borderRadius: 10, padding: 12, boxShadow: '0 6px 18px rgba(255,255,255,0.1)' }}>
-                  <Link to={`/journal/${j._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                    <div style={{ minHeight: 140, overflow: 'hidden' }} dangerouslySetInnerHTML={{ __html: (j.bodyHtml || '').slice(0, 400) + (j.bodyHtml && j.bodyHtml.length > 400 ? '...' : '') }} />
-                  </Link>
-                  <div style={{ marginTop: 12, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <div style={{ fontWeight: 700 }}>{j.title}</div>
-                      <div style={{ color: '#ccc', fontSize: 13 }}>{j.authorName || j.authorEmail}</div>
-                    </div>
-                    <div>
-                      <Link to={`/journal/author/${j.authorSupabaseId}`} className="btn btn-secondary">More</Link>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
+    <div className="journal-list-page">
+      <div className="journal-header-section">
+        <div className="journal-title-area">
+          <div className="header-title">
+            <Grid3x3 size={32} />
+            <h1>Journal Gallery</h1>
+          </div>
+          <p className="header-subtitle">A curated collection of published works</p>
+        </div>
+      </div>
+
+      <div className="journal-nav-section">
+        <div className="journal-nav">
+          <Link 
+            to="/journal" 
+            className={`journal-nav-link ${location.pathname === '/journal' ? 'active' : ''}`}
+          >
+            <List size={18} />
+            All Journals
+          </Link>
+          <Link 
+            to="/journal/gallery" 
+            className={`journal-nav-link ${location.pathname === '/journal/gallery' ? 'active' : ''}`}
+          >
+            <Grid3x3 size={18} />
+            Gallery View
+          </Link>
+          {user && (
+            <>
+              <Link 
+                to="/journal/new" 
+                className={`journal-nav-link ${location.pathname === '/journal/new' ? 'active' : ''}`}
+              >
+                <Plus size={18} />
+                New Journal
+              </Link>
+              <Link 
+                to="/journal/drafts" 
+                className={`journal-nav-link ${location.pathname === '/journal/drafts' ? 'active' : ''}`}
+              >
+                <FileText size={18} />
+                My Drafts
+              </Link>
+            </>
           )}
-        </>
+          {!user && (
+            <Link to="/login" className="journal-nav-link">
+              Login to create
+            </Link>
+          )}
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="journal-grid gallery-grid">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <div key={i} className="journal-card skeleton-card">
+              <div className="skeleton-title"></div>
+              <div className="skeleton-meta"></div>
+              <div className="skeleton-text"></div>
+              <div className="skeleton-text short"></div>
+            </div>
+          ))}
+        </div>
+      ) : items.length === 0 ? (
+        <div className="empty-state">
+          <Grid3x3 size={64} />
+          <h3>No published journals yet</h3>
+          <p>Check back soon for new entries</p>
+        </div>
+      ) : (
+        <div className="journal-grid gallery-grid">
+          {items.map(j => (
+            <Link 
+              key={j._id} 
+              to={`/journal/${j._id}`}
+              className="journal-card"
+            >
+              <h3 className="journal-title">{j.title}</h3>
+              
+              <div className="journal-meta">
+                <Link 
+                  to={`/journal/author/${j.authorSupabaseId}`}
+                  className="author-link"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <User size={14} />
+                  {j.authorName || j.authorEmail}
+                </Link>
+                <span className="date">
+                  <Calendar size={14} />
+                  {new Date(j.publishedAt || j.createdAt).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                  })}
+                </span>
+              </div>
+
+              <p className="journal-excerpt">
+                {getExcerpt(j.bodyHtml || '')}
+              </p>
+
+              <div className="read-more">
+                Read more →
+              </div>
+            </Link>
+          ))}
+        </div>
       )}
     </div>
   );

@@ -3,7 +3,6 @@ import './Home.css';
 import HomeNavbar from '../components/HomeNavbar';
 import About from '../components/About';
 import Team from '../components/Team';
-import Highlights from '../components/Highlights';
 import JournalSection from '../components/JournalSection';
 import PastCoverage from '../components/PastCoverage';
 import UpcomingEvents from '../components/UpcomingEvents';
@@ -11,7 +10,6 @@ import UpcomingEvents from '../components/UpcomingEvents';
 const SECTIONS = [
   { id: 'about', label: 'About' },
   { id: 'team', label: 'Team' },
-  { id: 'highlights', label: 'Highlights' },
   { id: 'journal', label: 'Journal' },
   { id: 'past', label: 'Past Coverage' },
   { id: 'events', label: 'Upcoming events' }
@@ -107,6 +105,24 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Pre-Order Announcement Banner */}
+      <div className="announcement-banner">
+        <div className="announcement-ticker">
+          <span className="ticker-badge">🔥 HOT DEAL</span>
+          <span className="ticker-separator">|</span>
+          <span className="ticker-headline">
+            <strong>Club Jacket Pre-Order:</strong> Get ৳300 OFF! 
+            <span className="price-inline">
+              <span className="strike-inline">৳1299</span> → <span className="highlight-inline">৳999</span>
+            </span>
+            + FREE Gifts 🎁
+          </span>
+          <a href="/merchandise" className="ticker-cta">
+            Order Now →
+          </a>
+        </div>
+      </div>
+
       <div className="home-main">
         <aside className="home-aside">
           <HomeNavbar sections={SECTIONS} active={active} onSelect={scrollTo} />
@@ -119,10 +135,6 @@ export default function Home() {
           
           <section id="team" ref={refs.current['team']}>
             <Team />
-          </section>
-          
-          <section id="highlights" ref={refs.current['highlights']}>
-            <Highlights />
           </section>
           
           <section id="journal" ref={refs.current['journal']}>

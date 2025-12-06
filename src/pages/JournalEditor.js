@@ -3,6 +3,7 @@ import { createJournal, updateJournal, fetchJournalById } from '../apiJournal';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import useAuth from '../lib/useAuth';
 import EditorToolbar from '../components/editor/EditorToolbar';
 import FloatingToolbar from '../components/editor/FloatingToolbar';
@@ -444,10 +445,16 @@ export default function JournalEditor() {
     try {
       const bodyHtml = editorRef.current?.innerHTML || '';
       // Allow autosave of drafts even without a title
-      if (!bodyHtml.trim()) return;
+      if (!bodyHtml.trim()) {
+        setMessage({ type: 'error', text: 'Cannot save empty draft. Please add some content.' });
+        return;
+      }
+
+      setSubmitting(true);
+      setMessage({ type: 'info', text: 'Saving draft...' });
 
       const payload = {
-        title,
+        title: title || 'Untitled Draft',
         fontFamily,
         color,
         bodyHtml,
@@ -460,9 +467,15 @@ export default function JournalEditor() {
 
       if (journalId) {
         await updateJournal(journalId, payload);
+        setMessage({ type: 'success', text: 'Draft updated successfully!' });
       } else {
         const res = await createJournal(payload);
-        if (res?.journal?._id) setJournalId(res.journal._id);
+        if (res?.journal?._id) {
+          setJournalId(res.journal._id);
+          setMessage({ type: 'success', text: 'Draft saved successfully!' });
+        } else {
+          throw new Error('Failed to create draft');
+        }
       }
 
       setLastSavedAt(new Date());
@@ -470,6 +483,9 @@ export default function JournalEditor() {
       setTimeout(renderAllLatex, 50);
     } catch (err) {
       console.error('Autosave failed:', err);
+      setMessage({ type: 'error', text: `Failed to save draft: ${err.message || 'Unknown error'}` });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -549,6 +565,40 @@ export default function JournalEditor() {
       <form onSubmit={handleSubmit}>
         {/* Header section */}
         <header className="editor-header">
+          <button 
+            type="button"
+            onClick={() => navigate('/journal')}
+            className="btn-back"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.5rem 1rem',
+              background: 'transparent',
+              border: '1px solid var(--border-medium)',
+              borderRadius: '8px',
+              color: 'var(--text-secondary)',
+              cursor: 'pointer',
+              fontSize: '0.95rem',
+              fontWeight: '500',
+              transition: 'all 0.2s ease',
+              marginBottom: '1rem'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'var(--bg-tertiary)';
+              e.currentTarget.style.borderColor = 'var(--accent-primary)';
+              e.currentTarget.style.color = 'var(--text-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.borderColor = 'var(--border-medium)';
+              e.currentTarget.style.color = 'var(--text-secondary)';
+            }}
+          >
+            <ArrowLeft size={18} />
+            Back to Journals
+          </button>
+
           <div className="editor-title">
             <input
               type="text"
@@ -636,9 +686,9 @@ export default function JournalEditor() {
               type="button" 
               className="btn btn-secondary"
               onClick={handleAutosave}
-              disabled={submitting || !isDirty}
+              disabled={submitting}
             >
-              Save Draft
+              {submitting && message?.text?.includes('Saving') ? 'Saving Draft...' : 'Save Draft'}
             </button>
             <button 
               type="submit" 

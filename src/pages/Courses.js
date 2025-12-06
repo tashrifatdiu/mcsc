@@ -26,7 +26,17 @@ const Courses = () => {
 
   return (
     <div className="course-list-section">
-      <h1>Courses</h1>
+      <div className="courses-header">
+        <h1>Courses</h1>
+        <div className="courses-notice">
+          <span className="notice-icon">ℹ️</span>
+          <p>
+            <strong>Note:</strong> These are dummy courses for demonstration purposes. 
+            In the future, we will offer real courses on high-level skills, workshops, 
+            and professional development opportunities.
+          </p>
+        </div>
+      </div>
       <div className="course-list-grid">
         {courses.map(course => (
           <div key={course._id} className="course-card" onClick={() => navigate(`/courses/${course._id}`)}>

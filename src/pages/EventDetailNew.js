@@ -43,6 +43,14 @@ export default function EventDetailNew() {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
+    const now = new Date();
+    
+    // If event is more than 30 days in the future, show "Date To Be Announced"
+    const daysUntil = Math.floor((date - now) / (1000 * 60 * 60 * 24));
+    if (daysUntil > 30) {
+      return 'Date To Be Announced';
+    }
+    
     return date.toLocaleDateString('en-US', { 
       day: 'numeric', 
       month: 'long',
@@ -131,7 +139,7 @@ export default function EventDetailNew() {
       <div className="event-new-content">
         <section className="description-section">
           <h2>About This Event</h2>
-          <p>{event.description}</p>
+          <div dangerouslySetInnerHTML={{ __html: event.description }} />
         </section>
 
         {/* Gallery */}

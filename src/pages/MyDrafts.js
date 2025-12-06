@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { fetchJournals } from '../apiJournal';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { FileText, List, Grid3x3, Plus, Edit } from 'lucide-react';
 import useAuth from '../lib/useAuth';
+import './JournalList.css';
 
 export default function MyDrafts() {
   const { user, loading: authLoading } = useAuth();
   const [drafts, setDrafts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const location = useLocation();
 
   useEffect(() => {
     if (!user) return;
@@ -27,29 +30,120 @@ export default function MyDrafts() {
   }, [user]);
 
   if (!user) return (
-    <div style={{ maxWidth: 900, margin: '40px auto', padding: 20, textAlign: 'center' }}>
-      <h3>Please sign in to view your drafts</h3>
-      <Link to="/login" className="btn btn-primary">Sign in</Link>
+    <div className="journal-list-page">
+      <div className="empty-state">
+        <FileText size={64} />
+        <h3>Please sign in to view your drafts</h3>
+        <Link to="/login" className="action-btn primary">Sign in</Link>
+      </div>
     </div>
   );
 
   return (
-    <div style={{ maxWidth: 980, margin: '20px auto' }}>
-      <h2>Your Drafts</h2>
-      {loading ? <div>Loading...</div> : (
-        <div style={{ display: 'grid', gap: 12 }}>
-          {error && <div style={{ color: 'crimson' }}>{error}</div>}
-          {drafts.map(j => (
-            <div key={j._id} style={{ padding:12, borderRadius:10, border:'1px solid rgba(255,255,255,0.1)', background:'#333', color:'#fff' }}>
-              <Link to={`/journal/edit/${j._id}`} style={{ fontSize:18, fontWeight:700, color:'#90caf9' }}>{j.title || '(Untitled draft)'}</Link>
-              <div style={{ color:'#ccc', marginTop:6 }}>{j.authorName || j.authorEmail} 
-                
-              </div>
-              <div style={{ marginTop:8, color:'#ddd' }} dangerouslySetInnerHTML={{ __html: (j.bodyHtml || '').slice(0, 300) + (j.bodyHtml && j.bodyHtml.length > 300 ? '...' : '') }} />
+    <div className="journal-list-page">
+      <div className="journal-header-section">
+        <div className="journal-title-area">
+          <div className="header-title">
+            <FileText size={32} />
+            <h1>My Drafts</h1>
+          </div>
+          <p className="header-subtitle">Your unpublished journal entries</p>
+        </div>
+      </div>
+
+      <div className="journal-nav-section">
+        <div className="journal-nav">
+          <Link 
+            to="/journal" 
+            className={`journal-nav-link ${location.pathname === '/journal' ? 'active' : ''}`}
+          >
+            <List size={18} />
+            All Journals
+          </Link>
+          <Link 
+            to="/journal/gallery" 
+            className={`journal-nav-link ${location.pathname === '/journal/gallery' ? 'active' : ''}`}
+          >
+            <Grid3x3 size={18} />
+            Gallery View
+          </Link>
+          <Link 
+            to="/journal/new" 
+            className={`journal-nav-link ${location.pathname === '/journal/new' ? 'active' : ''}`}
+          >
+            <Plus size={18} />
+            New Journal
+          </Link>
+          <Link 
+            to="/journal/drafts" 
+            className={`journal-nav-link ${location.pathname === '/journal/drafts' ? 'active' : ''}`}
+          >
+            <FileText size={18} />
+            My Drafts
+          </Link>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="journal-grid">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="journal-card skeleton-card">
+              <div className="skeleton-title"></div>
+              <div className="skeleton-meta"></div>
+              <div className="skeleton-text"></div>
             </div>
           ))}
-          {drafts.length === 0 && <div>No drafts yet.</div>}
         </div>
+      ) : (
+        <>
+          {error && (
+            <div style={{ maxWidth: 1400, margin: '0 auto 2rem', padding: '1rem', background: '#fee', color: '#c00', borderRadius: 12 }}>
+              {error}
+            </div>
+          )}
+          {drafts.length === 0 ? (
+            <div className="empty-state">
+              <FileText size={64} />
+              <h3>No drafts yet</h3>
+              <p>Start writing your first journal entry</p>
+              <Link to="/journal/new" className="action-btn primary">
+                <Plus size={18} />
+                Create New Journal
+              </Link>
+            </div>
+          ) : (
+            <div className="journal-grid">
+              {drafts.map(j => (
+                <Link 
+                  key={j._id} 
+                  to={`/journal/edit/${j._id}`}
+                  className="journal-card"
+                >
+                  <h3 className="journal-title">{j.title || '(Untitled draft)'}</h3>
+                  
+                  <div className="journal-meta">
+                    <span className="date">
+                      <Edit size={14} />
+                      Draft
+                    </span>
+                  </div>
+
+                  <div 
+                    className="journal-excerpt"
+                    dangerouslySetInnerHTML={{ 
+                      __html: (j.bodyHtml || '').replace(/<[^>]*>/g, '').slice(0, 200) + 
+                              ((j.bodyHtml || '').length > 200 ? '...' : '') 
+                    }} 
+                  />
+
+                  <div className="read-more">
+                    Continue editing →
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

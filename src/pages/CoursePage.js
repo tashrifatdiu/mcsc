@@ -131,6 +131,35 @@ const CoursePage = () => {
         .header { background: #1e293b; border-bottom: 1px solid #3f3f46; padding: 32px 0; position: sticky; top: 0; z-index: 10; }
         .header h1 { font-size: 2.2rem; color: #eebf3f; margin: 0 0 12px; }
         .header p { color: #b8c1ec; font-size: 1.1rem; margin: 8px 0 20px; }
+        
+        /* Notice Banner */
+        .course-notice { 
+          margin: 20px 0; 
+          padding: 16px 20px; 
+          background: rgba(251, 191, 36, 0.15); 
+          border: 2px solid rgba(251, 191, 36, 0.3); 
+          border-radius: 12px; 
+          display: flex; 
+          align-items: flex-start; 
+          gap: 12px; 
+        }
+        .notice-icon { font-size: 1.3rem; flex-shrink: 0; }
+        .course-notice p { 
+          margin: 0; 
+          color: #f3f6fa; 
+          font-size: 0.95rem; 
+          line-height: 1.5; 
+        }
+        .course-notice strong { color: #fbbf24; font-weight: 700; }
+        @media (max-width: 768px) {
+          .course-notice { 
+            flex-direction: column; 
+            text-align: center; 
+            padding: 14px 16px; 
+          }
+          .notice-icon { font-size: 1.5rem; }
+        }
+        
         .progress-text { color: #9ca3af; font-size: 0.95rem; }
         .progress-bar { margin-top: 12px; height: 10px; background: #3f3f46; border-radius: 999px; overflow: hidden; }
         .progress-fill { height: 100%; background: #eebf3f; transition: width 0.4s ease; }
@@ -196,6 +225,17 @@ const CoursePage = () => {
           <div className="container">
             <h1>{courseData.title}</h1>
             <p>{courseData.description}</p>
+            
+            {/* Notice Banner */}
+            <div className="course-notice">
+              <span className="notice-icon">ℹ️</span>
+              <p>
+                <strong>Note:</strong> This is a dummy course for demonstration purposes. 
+                In the future, we will offer real courses on high-level skills, workshops, 
+                and professional development opportunities.
+              </p>
+            </div>
+            
             <div className="progress-text">
               Progress: {completedVideos.size} / {total} videos completed
             </div>
@@ -222,9 +262,11 @@ const CoursePage = () => {
                     {currentVideo?.youtube_link ? (
                       <div className="video-wrapper">
                         <iframe
-                          src={currentVideo.youtube_link.replace('watch?v=', 'embed/')}
+                          src={`${currentVideo.youtube_link.replace('watch?v=', 'embed/')}?modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&cc_load_policy=0&fs=1&color=white&controls=1&disablekb=0&playsinline=1`}
                           title={currentVideo.title}
                           allowFullScreen
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          frameBorder="0"
                         />
                       </div>
                     ) : (

@@ -409,8 +409,8 @@ export default function Footer() {
             <div className="footer-section brand-section">
               <div className="brand-card">
                 <div className="brand-inner">
-                  <p>Powered by</p>
-                  <p>Midenus</p>
+                  <p>Created by</p>
+                  <p>MCSC</p>
                 </div>
               </div>
             </div>

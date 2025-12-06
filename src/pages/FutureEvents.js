@@ -41,6 +41,14 @@ export default function FutureEvents() {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
+    const now = new Date();
+    
+    // If event is more than 30 days in the future, show "Date To Be Announced"
+    const daysUntil = Math.floor((date - now) / (1000 * 60 * 60 * 24));
+    if (daysUntil > 30) {
+      return 'Date To Be Announced';
+    }
+    
     return date.toLocaleDateString('en-US', { 
       day: 'numeric', 
       month: 'long',
@@ -53,6 +61,12 @@ export default function FutureEvents() {
     const today = new Date();
     const diffTime = eventDate - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    // If more than 30 days, show "SOON"
+    if (diffDays > 30) {
+      return 'SOON';
+    }
+    
     return diffDays;
   };
 
@@ -113,7 +127,11 @@ export default function FutureEvents() {
                       
                       <div className="future-event-countdown">
                         <Clock size={16} />
-                        <span>{daysUntil > 0 ? `${daysUntil} DAYS` : daysUntil === 0 ? 'TODAY' : 'PAST'}</span>
+                        <span>
+                          {daysUntil === 'SOON' ? 'COMING SOON' : 
+                           daysUntil > 0 ? `${daysUntil} DAYS` : 
+                           daysUntil === 0 ? 'TODAY' : 'PAST'}
+                        </span>
                       </div>
                     </div>
 
@@ -122,7 +140,6 @@ export default function FutureEvents() {
                         {event.title}
                       </h3>
                       <p className="future-event-card-short">{event.shortDescription}</p>
-                      <p className="future-event-card-description">{event.description}</p>
 
                       <div className="future-event-card-meta">
                         <div className="future-event-meta-item">

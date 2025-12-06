@@ -71,6 +71,11 @@ const RegistrationRequest = () => {
     let mounted = true;
 
     async function loadData() {
+      // Wait for auth to complete before showing content
+      if (authLoading) {
+        return;
+      }
+
       if (!user) {
         setLoading(false);
         return;
@@ -125,7 +130,7 @@ const RegistrationRequest = () => {
     return () => {
       mounted = false;
     };
-  }, [user]);
+  }, [user, authLoading]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

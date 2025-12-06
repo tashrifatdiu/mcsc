@@ -52,6 +52,13 @@ export default function AdminJournals() {
     setLoading(true);
     try {
       const res = await adminLogin(credentials.username, credentials.password);
+      // Only main building admin can manage journals
+      if (res.admin.building !== 'main building') {
+        setMessage('Access denied. Only main building admin can manage journals.');
+        setLoading(false);
+        return;
+      }
+      
       setToken(res.token);
       setAdminInfo(res.admin);
       localStorage.setItem(LOCAL_TOKEN_KEY, res.token);
