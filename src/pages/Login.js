@@ -180,15 +180,16 @@ export default function Login() {
           {/* <span style={{ fontSize: 14, color: '#475569' }}>Remember me</span> */}
         </label>
 
-        <div className="full" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Link to="/signup" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: 24 }}>Create an account?</Link>
-          {/* <Link to="#" style={{ color: '#64748b', textDecoration: 'none', fontSize: 14 }}>Forgot password?</Link> */}
-        </div>
+        
 
         <div className="actions full" style={{ marginTop: 8 }}>
           <button type="submit" className="btn btn-primary" disabled={loading}>{loading ? 'Signing in...' : 'Sign in'}</button>
         </div>
       </form>
+      <div className="full" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Link to="/signup" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: 24 }}>Create an account?</Link>
+          {/* <Link to="#" style={{ color: '#64748b', textDecoration: 'none', fontSize: 14 }}>Forgot password?</Link> */}
+        </div>
 
       {status && (
         <div className={`status ${status.type === 'error' ? 'error' : 'success'}`} style={{ marginTop: 12 }}>
