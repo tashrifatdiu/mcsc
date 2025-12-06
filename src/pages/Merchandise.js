@@ -8,10 +8,10 @@ import JacketPreBookModal from '../components/JacketPreBookModal';
 import './Merchandise.css';
 
 // Import images
-import jacketEnglishFront from './images/clubJacketEnglishVersionFront.jpg';
-import jacketEnglishBack from './images/clubJacketEnglishVersionBack.jpg';
-import jacketBanglaFront from './images/clubJacketBanglaVersionFront.jpg';
-import jacketBanglaBack from './images/clubJacketBanglaVersionBack.jpg';
+import jacketEnglishFront from './images/clubJacketEnglishVersionFront.png';
+import jacketEnglishBack from './images/clubJacketEnglishVersionBack.png';
+import jacketBanglaFront from './images/clubJacketBanglaVersionFront.png';
+import jacketBanglaBack from './images/clubJacketBanglaVersionBack.png';
 import nameplateEnglish from './images/clubNamePlateEnglishVersion.png';
 import nameplateBangla from './images/clubNamePlateBanglaVersion.png';
 import cortPin from './images/cort pin.png';
