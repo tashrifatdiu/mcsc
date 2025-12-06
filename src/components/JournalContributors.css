@@ -1,10 +1,10 @@
-/* Journal Contributors Section */
+/* Journal Contributors Section - Smaller */
 .contributors-section {
-  max-width: 1400px;
-  margin: 3rem auto;
-  padding: 2.5rem;
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 1.5rem;
   background: var(--bg-card);
-  border-radius: 16px;
+  border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
@@ -15,61 +15,63 @@
 .contributors-header {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
 .contributors-header svg {
   color: var(--accent-primary);
+  width: 20px;
+  height: 20px;
 }
 
 .contributors-header h3 {
-  font-size: 2rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
 }
 
 .contributors-subtitle {
-  font-size: 1.1rem;
+  font-size: 0.85rem;
   color: var(--text-secondary);
-  margin: 0 0 2rem 0;
-  line-height: 1.6;
+  margin: 0 0 1.25rem 0;
+  line-height: 1.5;
 }
 
 .contributors-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
 }
 
 .contributor-card {
   display: flex;
-  gap: 1.5rem;
-  padding: 2rem;
+  gap: 1rem;
+  padding: 1.25rem;
   background: var(--bg-tertiary);
-  border-radius: 12px;
+  border-radius: 10px;
   border: 2px solid var(--border-medium);
   transition: all 0.3s ease;
 }
 
 .contributor-card:hover {
   border-color: var(--accent-primary);
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
 }
 
 [data-theme="dark"] .contributor-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
 }
 
 .contributor-avatar {
   flex-shrink: 0;
-  width: 100px;
-  height: 100px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   overflow: hidden;
-  border: 3px solid var(--accent-primary);
+  border: 2px solid var(--accent-primary);
 }
 
 .contributor-avatar img {
@@ -86,7 +88,7 @@
   justify-content: center;
   background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
   color: white;
-  font-size: 2rem;
+  font-size: 1.25rem;
   font-weight: 700;
 }
 
@@ -95,95 +97,99 @@
 }
 
 .contributor-name {
-  font-size: 1.5rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 0.5rem 0;
 }
 
 .contributor-details {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.375rem;
   flex-wrap: wrap;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.375rem;
 }
 
 .detail-badge {
   display: inline-block;
-  padding: 0.25rem 0.75rem;
+  padding: 0.2rem 0.6rem;
   background: var(--accent-primary);
   color: white;
-  border-radius: 12px;
-  font-size: 0.85rem;
+  border-radius: 10px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
 .contributor-building {
-  font-size: 0.95rem;
+  font-size: 0.8rem;
   color: var(--text-secondary);
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 0.5rem 0;
   font-style: italic;
 }
 
 .contributor-role {
   display: inline-block;
-  padding: 0.5rem 1rem;
+  padding: 0.35rem 0.75rem;
   background: var(--bg-card);
-  border: 2px solid var(--accent-primary);
-  border-radius: 8px;
+  border: 1.5px solid var(--accent-primary);
+  border-radius: 6px;
   color: var(--accent-primary);
   font-weight: 600;
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
+  font-size: 0.75rem;
+  margin-bottom: 0.625rem;
 }
 
 .contributor-contribution {
-  font-size: 1rem;
-  line-height: 1.6;
+  font-size: 0.85rem;
+  line-height: 1.5;
   color: var(--text-secondary);
   margin: 0;
 }
 
 @media (max-width: 768px) {
   .contributors-section {
-    padding: 1.5rem;
-    margin: 2rem 0.5rem;
+    padding: 1.25rem;
+    margin: 1.5rem 0.5rem;
   }
 
   .contributors-header h3 {
-    font-size: 1.5rem;
+    font-size: 1.1rem;
   }
 
   .contributors-subtitle {
-    font-size: 1rem;
+    font-size: 0.8rem;
   }
 
   .contributors-grid {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 1rem;
   }
 
   .contributor-card {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding: 1.5rem;
+    padding: 1.25rem;
   }
 
   .contributor-avatar {
-    width: 80px;
-    height: 80px;
+    width: 55px;
+    height: 55px;
   }
 
   .avatar-placeholder {
-    font-size: 1.5rem;
+    font-size: 1.1rem;
   }
 
   .contributor-name {
-    font-size: 1.25rem;
+    font-size: 1rem;
   }
 
   .contributor-details {
     justify-content: center;
+  }
+
+  .contributor-contribution {
+    font-size: 0.8rem;
   }
 }
